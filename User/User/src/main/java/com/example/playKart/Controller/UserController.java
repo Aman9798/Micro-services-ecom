@@ -74,6 +74,14 @@ public class UserController {
     }
 
 
+    @GetMapping("/address/{id}")
+    public ResponseEntity<AddressDTO> getAddressById(@PathVariable Integer id,@RequestHeader("Authorization") String authHeader){
+        System.out.println("1");
+        String token = authHeader.substring(7);
+        AddressDTO userAddress = userService.getAddressById(id,token);
+        return new ResponseEntity<>(userAddress,HttpStatus.OK);
+
+    }
 
 
 

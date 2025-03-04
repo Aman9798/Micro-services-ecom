@@ -4,7 +4,6 @@ package com.example.ProductMicroServices.Controller;
 import com.example.ProductMicroServices.DTO.FilterProductsDTO;
 import com.example.ProductMicroServices.DTO.ProductDTO;
 import com.example.ProductMicroServices.DTO.UpdateProductDTO;
-import com.example.ProductMicroServices.Enums.Brand;
 import com.example.ProductMicroServices.Entity.Product;
 import com.example.ProductMicroServices.Services.ProductServices;
 import jakarta.validation.Valid;
@@ -75,6 +74,13 @@ public class ProductController {
 
         List<Product> products = productServices.filterProducts(filters);
         return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+
+    @PatchMapping("/reduceStock/{prodId}")
+    public void reduceStock(@RequestParam int quantity,@PathVariable Integer prodId){
+
+        productServices.reduceStock(prodId,quantity);
+
     }
 
 }

@@ -24,6 +24,16 @@ public class CartItem {
 
     private int quantity;
 
+    private long price;
+
+    public long getPrice() {
+        return price*quantity;
+    }
+
+    public void setPrice(long price) {
+        this.price = price;
+    }
+
     public int getCartItemId() {
         return cartItemId;
     }

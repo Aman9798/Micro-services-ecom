@@ -35,13 +35,23 @@ public class OrderItem {
 
     private String phoneNumber;
 
+    private String imageURL;
+
+    public String getImageURL() {
+        return imageURL;
+    }
+
+    public void setImageURL(String imageURL) {
+        this.imageURL = imageURL;
+    }
+
     @ManyToOne
     @JoinColumn(name = "order_id")
     @JsonBackReference
     private Orders order;
 
 
-    public OrderItem( int productId, String productName, String productDescription, Long price, int quantity, int userId, String userName, String address, String phoneNumber) {
+    public OrderItem( int productId, String productName, String productDescription, Long price, int quantity, int userId, String userName, String address, String phoneNumber,String imageURL) {
         this.createdAt = new Date();
         this.productId = productId;
         this.productName = productName;
@@ -52,6 +62,7 @@ public class OrderItem {
         this.userName = userName;
         Address = address;
         this.phoneNumber = phoneNumber;
+        this.imageURL = imageURL;
     }
 
     public OrderItem() {
@@ -79,7 +90,7 @@ public class OrderItem {
     }
 
     public Long getPrice() {
-        return price;
+        return price*quantity;
     }
 
     public int getQuantity() {

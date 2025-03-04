@@ -1,18 +1,13 @@
-package com.example.Cart.Entity;
+package com.example.Cart.DTO;
 
-
+import com.example.Cart.Entity.CartItem;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.Data;
-import org.hibernate.validator.constraints.UniqueElements;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
-@Entity
-public class Cart {
-
+public class CartDTO {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int cartId;
@@ -21,18 +16,12 @@ public class Cart {
     @JsonManagedReference
     private List<CartItem> cartItems = new ArrayList<>();
 
-    @Column(unique = true)
-    private int userID;
-
-
-    public long getTotalPrice() {
-        long totalPrice = 0;
-        for (CartItem item : cartItems) {
-            totalPrice += item.getPrice() * item.getQuantity();
-        }
-        return totalPrice;
+    public CartDTO(int cartId, List<CartItem> cartItems) {
+        this.cartId = cartId;
+        this.cartItems = cartItems;
     }
 
+    private int totalPrice;
     public int getCartId() {
         return cartId;
     }
@@ -48,15 +37,6 @@ public class Cart {
     public void setCartItems(List<CartItem> cartItems) {
         this.cartItems = cartItems;
     }
-
-    public int getUserID() {
-        return userID;
-    }
-
-    public void setUserID(int userID) {
-        this.userID = userID;
-    }
-
 
 
 }

@@ -29,13 +29,9 @@ public class ProductDTO {
 
     private Long price;
 
-
     private Long stock;
 
-
     private String category;
-
-
 
     private String brand;
 

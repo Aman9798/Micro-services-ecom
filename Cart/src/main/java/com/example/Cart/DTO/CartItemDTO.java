@@ -1,28 +1,28 @@
 package com.example.Cart.DTO;
 
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public class CartItemDTO {
 
 
-    @Size(min = 2 , max = 100 , message = "The product name should be at least of 2 characters")
-    private String productName;
-
-
-    @NotNull
+    @NotNull(message = "ProductId cannot be null")
     private int productId;
 
-    @NotNull
+    @NotNull(message = "Quantity cannot be null")
+    @Min(value = 1,message = "Quantity cannot be 0 or negative")
     private int quantity;
 
-    public String getProductName() {
-        return productName;
+    private int addressId;
+
+    public int getAddressId() {
+        return addressId;
     }
 
-    public void setProductName(String productName) {
-        this.productName = productName;
+    public void setAddressId(int addressId) {
+        this.addressId = addressId;
     }
 
     public int getProductId() {

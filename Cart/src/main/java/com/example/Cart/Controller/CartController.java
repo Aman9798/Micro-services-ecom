@@ -1,12 +1,17 @@
 package com.example.Cart.Controller;
 
+import com.example.Cart.DTO.CartDTO;
 import com.example.Cart.DTO.CartItemDTO;
-import com.example.Cart.Entity.Cart;
+import com.example.Cart.DTO.UpdateProductDTO;
+import com.example.Cart.Entity.CartItem;
 import com.example.Cart.Services.CartService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/cart")
@@ -18,31 +23,32 @@ public class CartController {
 
 
     @PostMapping("/")
-    public ResponseEntity<Cart> addCartItem(@RequestBody CartItemDTO cartItem,@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<List<CartItem>> addCartItem(@Valid @RequestBody CartItemDTO cartItem, @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.substring(7);
 
-        Cart cart = cartService.addCartItem(cartItem,token);
-        return new ResponseEntity<>(cart,HttpStatus.CREATED);
+        List<CartItem> cartItems = cartService.addCartItem(cartItem,token);
+        return new ResponseEntity<>(cartItems,HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/{cartItemId}")
-    public ResponseEntity<Cart> removeCartItem( @PathVariable int cartItemId,@RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.substring(7);
-        Cart updatedCart = cartService.removeCartItem(cartItemId,token);
-        return new ResponseEntity<>(updatedCart,HttpStatus.OK);
-    }
+//    @DeleteMapping("/{cartItemId}")
+//    public ResponseEntity<CartDTO> removeCartItem(@PathVariable int cartItemId, @RequestHeader("Authorization") String authHeader) {
+//        String token = authHeader.substring(7);
+//        CartDTO updatedCart = cartService.removeCartItem(cartItemId,token);
+//        return new ResponseEntity<>(updatedCart,HttpStatus.OK);
+//    }
 
     @GetMapping("/")
-    public ResponseEntity<Cart> getCart(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<CartDTO> getCart(@RequestHeader("Authorization") String authHeader) {
         String token = authHeader.substring(7);
-        Cart cart = cartService.getCart(token);
+        CartDTO cart = cartService.getCart(token);
         return new ResponseEntity<>(cart,HttpStatus.OK);
     }
 
+
     @PatchMapping("/{cartItemId}")
-    public ResponseEntity<Cart> updateCartItemQuantity(@PathVariable int cartItemId,@RequestParam int quantity,@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<CartDTO> updateCartItemQuantity(@PathVariable int cartItemId, @RequestHeader("Authorization") String authHeader, @RequestBody UpdateProductDTO updateProductDTO) {
         String token = authHeader.substring(7);
-        Cart updatedCart = cartService.updateCartItem(cartItemId,token,quantity);
+        CartDTO updatedCart = cartService.updateCartItem(cartItemId,token,updateProductDTO.getQuantity());
         return new ResponseEntity<>(updatedCart,HttpStatus.CREATED);
     }
 

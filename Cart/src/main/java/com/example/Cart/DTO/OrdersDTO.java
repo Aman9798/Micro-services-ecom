@@ -1,18 +1,13 @@
-package com.example.Cart.Entity;
+package com.example.Cart.DTO;
 
-
+import com.example.Cart.Entity.OrderItem;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
-@Entity
-public class Orders {
-
-
+public class OrdersDTO {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int orderId;
@@ -21,16 +16,15 @@ public class Orders {
     @JsonManagedReference
     private List<OrderItem> orderItems = new ArrayList<>();
 
+    private long totalPrice;
+
     public long getTotalPrice() {
-        long totalPrice = 0;
-        for (OrderItem item : orderItems) {
-            totalPrice += item.getPrice();
-        }
         return totalPrice;
     }
 
-   // @Column(name = "userid", nullable = false)
-    private int userId;
+    public void setTotalPrice(long totalPrice) {
+        this.totalPrice = totalPrice;
+    }
 
     public int getOrderId() {
         return orderId;
@@ -48,13 +42,9 @@ public class Orders {
         this.orderItems = orderItems;
     }
 
-    public int getUserId() {
-        return userId;
+    public OrdersDTO(int orderId, List<OrderItem> orderItems,long price) {
+        this.orderId = orderId;
+        this.orderItems = orderItems;
+        this.totalPrice = price;
     }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
-
-
 }

@@ -15,6 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/order/")
+@CrossOrigin
 public class OrderController {
 
 
@@ -50,6 +51,14 @@ public class OrderController {
 
         List<OrdersDTO> userOrders = orderServices.buyNow(authHeader,cartItemDTO);
         return new ResponseEntity<>(userOrders,HttpStatus.CREATED);
+    }
+
+    @GetMapping("/product/{productId}")
+    public boolean userHasOrder(@RequestHeader("Authorization") String authHeader,@PathVariable int productId){
+
+        System.out.println(1);
+        String token = authHeader.substring(7);
+        return orderServices.checkUserHasBoughtProduct(token,productId);
     }
 
 

@@ -5,7 +5,18 @@ public class AddressDTO {
     @NotNull(message = "Street can't be empty")
     private String street;
 
-    public AddressDTO(String street, String city, String state, String zipCode) {
+    private Integer id;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public AddressDTO(int id, String street, String city, String state, String zipCode) {
+        this.id = id;
         this.street = street;
         this.city = city;
         this.state = state;

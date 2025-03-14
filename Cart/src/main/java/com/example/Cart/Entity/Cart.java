@@ -28,7 +28,7 @@ public class Cart {
     public long getTotalPrice() {
         long totalPrice = 0;
         for (CartItem item : cartItems) {
-            totalPrice += item.getPrice() * item.getQuantity();
+            totalPrice += item.getPrice();
         }
         return totalPrice;
     }

@@ -2,6 +2,7 @@ package com.example.ProductMicroServices.Controller;
 
 
 import com.example.ProductMicroServices.DTO.FilterProductsDTO;
+import com.example.ProductMicroServices.DTO.ProductCardDTO;
 import com.example.ProductMicroServices.DTO.ProductDTO;
 import com.example.ProductMicroServices.DTO.UpdateProductDTO;
 import com.example.ProductMicroServices.Entity.Product;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController()
+@CrossOrigin
 @RequestMapping("/products")
 public class ProductController {
 
@@ -33,11 +35,25 @@ public class ProductController {
         return new ResponseEntity<>(product,HttpStatus.OK);
     }
 
+    @GetMapping("/card")
+    public ResponseEntity <List<ProductCardDTO>> getAllProductCards(){
+        List<ProductCardDTO> productCards = productServices.getAllProductCardsDetails();
+        return new ResponseEntity<>(productCards,HttpStatus.OK);
+    }
+
     //get products
     @GetMapping("/category/{category}")
     public ResponseEntity<List<Product>> getProductsByCategory(@PathVariable String category) {
 
         List<Product> products = productServices.getProductsByCategory(category);
+        return new ResponseEntity<>(products,HttpStatus.OK);
+
+    }
+
+    @GetMapping("/gender/{gender}")
+    public ResponseEntity<List<Product>> getProductsByGender(@PathVariable String gender) {
+
+        List<Product> products = productServices.getProductsByGender(gender);
         return new ResponseEntity<>(products,HttpStatus.OK);
 
     }
@@ -69,8 +85,9 @@ public class ProductController {
         return new ResponseEntity<>("Product Deleted",HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping("/filter")
+    @PostMapping("/filter")
     public ResponseEntity<List<Product>> filterProducts(@RequestBody FilterProductsDTO filters) {
+
 
         List<Product> products = productServices.filterProducts(filters);
         return new ResponseEntity<>(products, HttpStatus.OK);

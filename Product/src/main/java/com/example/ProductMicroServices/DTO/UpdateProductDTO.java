@@ -31,6 +31,8 @@ public class UpdateProductDTO {
 
     private String brand;
 
+    private String gender;
+
     public String getName() {
         return name;
     }
@@ -65,4 +67,11 @@ public class UpdateProductDTO {
         return imageURL;
     }
 
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
 }

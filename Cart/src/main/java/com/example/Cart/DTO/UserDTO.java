@@ -3,27 +3,28 @@ package com.example.Cart.DTO;
 public class UserDTO {
 
 
-    private int userId;
-
     private String name;
 
-    public UserDTO(int id, String name, String email, String phoneNumber) {
-        this.userId = id;
+    public UserDTO(String name, String email, String phoneNumber,boolean isAdmin) {
         this.name = name;
         this.email = email;
         this.phoneNumber = phoneNumber;
+        this.isAdmin = isAdmin;
     }
 
     private String email;
     private String phoneNumber;
 
-    public int getUserId() {
-        return userId;
+    private boolean isAdmin;
+
+    public boolean isAdmin() {
+        return isAdmin;
     }
 
-    public void setUserId(int userId) {
-        this.userId = userId;
+    public void setAdmin(boolean admin) {
+        isAdmin = admin;
     }
+
     public String getName() {
         return name;
     }

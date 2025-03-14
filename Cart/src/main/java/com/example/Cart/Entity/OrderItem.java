@@ -21,7 +21,6 @@ public class OrderItem {
 
     private String productName;
 
-    private String productDescription;
 
     private Long price;
 
@@ -51,11 +50,11 @@ public class OrderItem {
     private Orders order;
 
 
-    public OrderItem( int productId, String productName, String productDescription, Long price, int quantity, int userId, String userName, String address, String phoneNumber,String imageURL) {
+    public OrderItem( int productId, String productName, Long price, int quantity, int userId, String userName, String address, String phoneNumber,String imageURL) {
         this.createdAt = new Date();
         this.productId = productId;
         this.productName = productName;
-        this.productDescription = productDescription;
+
         this.price = price;
         this.quantity = quantity;
         this.userId = userId;
@@ -85,9 +84,6 @@ public class OrderItem {
         return productName;
     }
 
-    public String getProductDescription() {
-        return productDescription;
-    }
 
     public Long getPrice() {
         return price*quantity;

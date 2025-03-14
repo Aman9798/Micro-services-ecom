@@ -15,12 +15,11 @@ public class RegisterDTO {
             "(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$", message ="please provide a valid email address")
     private String email;
     @NotNull(message= "Password can't be empty")
-    @Pattern(regexp ="(?=.*\\d.*)(?=.*[a-zA-Z].*)(?=.*[!#\\$@%&\\?].*).{8,20}",message = "password must contain 1 lowercase,1 uppercase and 1 special character and ust be of min. length 8")
+    @Pattern(regexp ="(?=.*\\d.*)(?=.*[a-zA-Z].*)(?=.*[!#\\$@%&\\?].*).{8,20}",message = "Password must contain 1 lowercase,1 uppercase and 1 special character and must be of min.length 8")
     private String password;
     @NotNull(message = "Phone Number can't be empty")
     @Size(min = 10, max= 10,message ="phone number should contain 10 numbers")
     private String phoneNumber;
-
 
     public String getName() {
         return name;

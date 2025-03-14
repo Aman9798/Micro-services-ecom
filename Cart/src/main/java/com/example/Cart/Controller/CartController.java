@@ -15,6 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/cart")
+@CrossOrigin
 public class CartController {
 
     @Autowired
@@ -29,13 +30,6 @@ public class CartController {
         List<CartItem> cartItems = cartService.addCartItem(cartItem,token);
         return new ResponseEntity<>(cartItems,HttpStatus.CREATED);
     }
-
-//    @DeleteMapping("/{cartItemId}")
-//    public ResponseEntity<CartDTO> removeCartItem(@PathVariable int cartItemId, @RequestHeader("Authorization") String authHeader) {
-//        String token = authHeader.substring(7);
-//        CartDTO updatedCart = cartService.removeCartItem(cartItemId,token);
-//        return new ResponseEntity<>(updatedCart,HttpStatus.OK);
-//    }
 
     @GetMapping("/")
     public ResponseEntity<CartDTO> getCart(@RequestHeader("Authorization") String authHeader) {

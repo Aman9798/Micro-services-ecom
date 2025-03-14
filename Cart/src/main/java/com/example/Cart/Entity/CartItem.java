@@ -26,6 +26,18 @@ public class CartItem {
 
     private long price;
 
+    private String imageUrl;
+
+
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
     public long getPrice() {
         return price*quantity;
     }

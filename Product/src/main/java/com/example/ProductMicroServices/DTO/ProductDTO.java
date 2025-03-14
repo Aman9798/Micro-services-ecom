@@ -31,7 +31,18 @@ public class ProductDTO {
 
     private String imageURL;
 
-    public ProductDTO(String name, String description, Long price, Long stock, String imageURL, String category, String brand) {
+    @NotNull(message = "Gender can't be null")
+    private String gender;
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public ProductDTO(String name, String description, Long price, Long stock, String imageURL, String category, String brand, String Gender) {
         this.name = name;
         this.description = description;
         this.price = price;
@@ -39,6 +50,7 @@ public class ProductDTO {
         this.imageURL = imageURL;
         this.category = category;
         this.brand = brand;
+        this.gender = gender;
     }
 
     @NotNull(message = "Category can't be null")

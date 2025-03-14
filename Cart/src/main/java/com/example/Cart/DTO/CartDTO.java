@@ -16,12 +16,22 @@ public class CartDTO {
     @JsonManagedReference
     private List<CartItem> cartItems = new ArrayList<>();
 
-    public CartDTO(int cartId, List<CartItem> cartItems) {
+    public CartDTO(int cartId, List<CartItem> cartItems,long totalPrice) {
         this.cartId = cartId;
         this.cartItems = cartItems;
+        this.totalPrice = totalPrice;
     }
 
-    private int totalPrice;
+    private long totalPrice;
+
+    public long getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(int totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
     public int getCartId() {
         return cartId;
     }

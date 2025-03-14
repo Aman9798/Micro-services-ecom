@@ -11,13 +11,34 @@ public class FilterProductsDTO {
     @Min(value = 0,message = "minimum price should be at least 0")
     private Long maxPrice;
 
-    private static String brand;
+    private  String brand;
 
     private String searchTerm;
 
     private String sortBy;
 
     private String sortDirection;
+
+    private String gender;
+
+    private String category;
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
 
     public Long getMinPrice() {
         return minPrice;
@@ -35,7 +56,7 @@ public class FilterProductsDTO {
         this.maxPrice = maxPrice;
     }
 
-    public static String getBrand() {
+    public  String getBrand() {
         return brand;
     }
 

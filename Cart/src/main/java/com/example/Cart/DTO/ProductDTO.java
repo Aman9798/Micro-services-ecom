@@ -37,6 +37,16 @@ public class ProductDTO {
 
     private String imageURL;
 
+    private String gender;
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
     // Getters and Setters
     public Integer getId() {
         return id;

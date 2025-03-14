@@ -1,8 +1,10 @@
 package com.example.ProductMicroServices.Entity;
 
+import com.example.ProductMicroServices.DTO.ReviewDTO;
 import com.example.ProductMicroServices.Enums.Brand;
 import com.example.ProductMicroServices.Enums.Category;
 
+import com.example.ProductMicroServices.Enums.Gender;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -12,6 +14,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import jakarta.validation.constraints.*;
 
 import jakarta.persistence.*;
+
+import java.util.List;
 import java.util.Random;
 
 @Document(collection = "products")
@@ -40,9 +44,30 @@ public class Product {
     @Enumerated
     private Category category;
 
+    private Double averageRating;
+    private Integer reviewCount;
+
+    public Double getAverageRating() {
+        return averageRating;
+    }
+
+    public void setAverageRating(Double averageRating) {
+        this.averageRating = averageRating;
+    }
+
+    public Integer getReviewCount() {
+        return reviewCount;
+    }
+
+    public void setReviewCount(Integer reviewCount) {
+        this.reviewCount = reviewCount;
+    }
 
     @Enumerated
     private Brand brand;
+
+    @Enumerated
+    private Gender gender;
 
     private String imageURL;
 
@@ -114,5 +139,13 @@ public class Product {
 
     public void setImageURL(String imageURL){
         this.imageURL = imageURL;
+    }
+
+    public Gender getGender() {
+        return gender;
+    }
+
+    public void setGender(Gender gender) {
+        this.gender = gender;
     }
 }

@@ -10,7 +10,9 @@ public class UpdateUserDTO {
     @Size(min = 10, max= 10,message ="phone number should contain 10 numbers")
     private String phoneNumber;
     @Pattern(regexp ="(?=.*\\d.*)(?=.*[a-zA-Z].*)(?=.*[!#\\$@%&\\?].*).{8,20}",message = "password must contain 1 lowercase,1 uppercase and 1 special character and ust be of min. length 8")
-    private String password;
+    private String newPassword;
+
+    private String oldPassword;
 
 
     public String getName(){
@@ -21,9 +23,11 @@ public class UpdateUserDTO {
         return phoneNumber;
     }
 
-    public String getPassword(){
-        return password;
+    public String getOldPassword(){
+        return oldPassword;
     }
+
+    public String getNewPassword(){return newPassword;}
 
 
 }

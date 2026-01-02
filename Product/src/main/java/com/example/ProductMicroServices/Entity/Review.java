@@ -1,5 +1,6 @@
 package com.example.ProductMicroServices.Entity;
 
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -9,6 +10,7 @@ import java.util.Date;
 
 @Document(collection = "reviews")
 @Data
+@Builder
 public class Review {
     @Id
     private String id;
@@ -21,13 +23,6 @@ public class Review {
     private Integer rating;
     private String comment;
     private Date createdAt;
-
-
-    public Review() {
-        this.createdAt = new Date();
-
-    }
-
 
     public String getId() {
         return id;

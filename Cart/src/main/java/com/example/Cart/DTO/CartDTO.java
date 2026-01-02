@@ -3,10 +3,12 @@ package com.example.Cart.DTO;
 import com.example.Cart.Entity.CartItem;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import lombok.Builder;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Builder
 public class CartDTO {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,12 +17,6 @@ public class CartDTO {
     @OneToMany(mappedBy = "cart",orphanRemoval = true,fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<CartItem> cartItems = new ArrayList<>();
-
-    public CartDTO(int cartId, List<CartItem> cartItems,long totalPrice) {
-        this.cartId = cartId;
-        this.cartItems = cartItems;
-        this.totalPrice = totalPrice;
-    }
 
     private long totalPrice;
 

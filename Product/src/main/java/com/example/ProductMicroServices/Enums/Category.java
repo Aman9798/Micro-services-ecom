@@ -6,7 +6,7 @@ public enum Category {
     SportsWears,
     SportsEquipments;
 
-    public Category isValidCategory(String category){
+    public static Category isValidCategory(String category){
         for(Category categories:Category.values()){
             String cat = categories.toString();
             if(cat.equals(category)){

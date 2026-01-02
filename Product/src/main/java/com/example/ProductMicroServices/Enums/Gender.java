@@ -6,7 +6,8 @@ public enum Gender {
     Men,
     Women,
     Kids;
-    public Gender isValidGender(String productGender){
+
+    public static Gender isValidGender(String productGender){
         for(Gender gender:Gender.values()){
             String comp = gender.toString();
             if(comp.equals(productGender)){

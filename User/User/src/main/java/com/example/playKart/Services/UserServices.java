@@ -55,7 +55,7 @@ public class UserServices {
             String encryptedPassword = passwordServices.encryptPassword(userRegisterDTO.getPassword());
             newUser.setPassword(encryptedPassword);
             newUser.setPhoneNumber(userRegisterDTO.getPhoneNumber());
-            newUser.setAdmin(false);
+            newUser.setAdmin(true);
 
             userRepo.save(newUser);
             ResponseUserDTO responseUserDTO = new ResponseUserDTO(newUser.getName(), newUser.getEmail(), newUser.getPhoneNumber(), newUser.isAdmin());

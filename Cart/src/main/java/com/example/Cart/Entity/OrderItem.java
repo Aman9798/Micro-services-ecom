@@ -3,12 +3,18 @@ package com.example.Cart.Entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
 @Data
 @Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class OrderItem {
 
     @Id
@@ -48,25 +54,6 @@ public class OrderItem {
     @JoinColumn(name = "order_id")
     @JsonBackReference
     private Orders order;
-
-
-    public OrderItem( int productId, String productName, Long price, int quantity, int userId, String userName, String address, String phoneNumber,String imageURL) {
-        this.createdAt = new Date();
-        this.productId = productId;
-        this.productName = productName;
-
-        this.price = price;
-        this.quantity = quantity;
-        this.userId = userId;
-        this.userName = userName;
-        Address = address;
-        this.phoneNumber = phoneNumber;
-        this.imageURL = imageURL;
-    }
-
-    public OrderItem() {
-
-    }
 
     public int getOrderItemId() {
         return orderItemId;

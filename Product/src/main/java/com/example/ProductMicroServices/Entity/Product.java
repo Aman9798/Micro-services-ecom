@@ -21,6 +21,7 @@ import java.util.Random;
 @Document(collection = "products")
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Builder
 public class Product {
 
     @Id

@@ -8,11 +8,11 @@ public enum Brand {
     Puma,
     Reebok;
 
-    public Brand isValidBrand(String productBrand){
-        for(Brand brands:Brand.values()){
-            String brand = brands.toString();
-            if(brand.equals(productBrand)){
-                return brands;
+    public static Brand isValidBrand(String productBrand){
+        for(Brand brand : Brand.values()){
+            String brandString = brand.toString();
+            if(brandString.equals(productBrand)){
+                return brand;
             }
         }
         throw new NoSuchBrandException("No such Brand is present");

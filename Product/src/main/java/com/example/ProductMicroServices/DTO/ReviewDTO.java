@@ -1,5 +1,8 @@
 package com.example.ProductMicroServices.DTO;
 
+import lombok.Builder;
+
+@Builder
 public class ReviewDTO {
 
     private int productId;

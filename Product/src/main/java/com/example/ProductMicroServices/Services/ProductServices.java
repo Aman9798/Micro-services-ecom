@@ -3,6 +3,9 @@ package com.example.ProductMicroServices.Services;
 import com.example.ProductMicroServices.DTO.*;
 import com.example.ProductMicroServices.Entity.Review;
 import com.example.ProductMicroServices.Enums.Gender;
+import com.example.ProductMicroServices.Filter.ProductQueryService;
+import com.example.ProductMicroServices.Mapper.ProductMapper;
+import com.example.ProductMicroServices.Mapper.ReviewMapper;
 import com.example.ProductMicroServices.Utils.JwtTokenUtil;
 import com.example.ProductMicroServices.Enums.Brand;
 import com.example.ProductMicroServices.Enums.Category;
@@ -32,6 +35,9 @@ public class ProductServices {
     @Autowired
     ReviewService reviewService;
 
+    @Autowired
+    ProductQueryService productQueryService;
+
     private static final Logger logger = Logger.getLogger(ProductServices.class.getName());
 
     public List<Product> getAllProducts() {
@@ -58,7 +64,7 @@ public class ProductServices {
     public List<Product> getProductsByCategory(String category) {
         try {
             logger.info("Fetching products by category: {}"+ category);
-            Category productCategory = Category.SportsEquipments.isValidCategory(category);
+            Category productCategory = Category.isValidCategory(category);
             return productRepo.findByCategory(productCategory);
         } catch (Exception e) {
             logger.severe("Error fetching the product with category : " + category);
@@ -69,7 +75,7 @@ public class ProductServices {
     public List<Product> getProductsByGender(String gender) {
         try {
             logger.info("Fetching products by category: {}"+ gender);
-            Gender productGender = Gender.Men.isValidGender(gender);
+            Gender productGender = Gender.isValidGender(gender);
             return productRepo.findByGender(productGender);
         } catch (Exception e) {
             logger.severe("Error fetching the product with gender " + gender);
@@ -85,20 +91,18 @@ public class ProductServices {
                 throw new UnauthorizedAccess("This is an admin functionality");
             }
 
-            Product newProduct = new Product();
-            newProduct.setId();
-            newProduct.setName(product.getName());
-            newProduct.setDescription(product.getDescription());
-            Category productCategory = Category.SportsEquipments.isValidCategory(product.getCategory());
-            newProduct.setCategory(productCategory);
-            newProduct.setPrice(product.getPrice());
-            newProduct.setStock(product.getStock());
-            newProduct.setImageURL(product.getImageURL());
-            Brand productBrand = Brand.Adidas.isValidBrand(product.getBrand());
-            newProduct.setBrand(productBrand);
-            Gender productGender = Gender.Men.isValidGender(product.getGender());
-            newProduct.setGender(productGender);
+            Product newProduct = Product.builder()
+                    .name(product.getName())
+                    .description(product.getDescription())
+                    .price(product.getPrice())
+                    .stock(product.getStock())
+                    .category(Category.isValidCategory(product.getCategory()))
+                    .brand(Brand.isValidBrand(product.getBrand()))
+                    .gender(Gender.isValidGender(product.getGender()))
+                    .imageURL(product.getImageURL())
+                    .build();
 
+            newProduct.setId();
             productRepo.save(newProduct);
             logger.info("Product added successfully: {}"+ newProduct.getId());
             return newProduct;
@@ -134,16 +138,16 @@ public class ProductServices {
                 product.setImageURL(productDTO.getImageURL());
             }
             if (productDTO.getCategory() != null && !productDTO.getCategory().isEmpty()) {
-                Category productCategory = Category.SportsEquipments.isValidCategory(productDTO.getCategory());
+                Category productCategory = Category.isValidCategory(productDTO.getCategory());
                 product.setCategory(productCategory);
             }
             if (productDTO.getBrand() != null && !productDTO.getBrand().isEmpty()) {
-                Brand productBrand = Brand.Adidas.isValidBrand(productDTO.getBrand());
+                Brand productBrand = Brand.isValidBrand(productDTO.getBrand());
                 product.setBrand(productBrand);
             }
 
             if(productDTO.getGender() != null && !productDTO.getGender().isEmpty()){
-                Gender productGender = Gender.Men.isValidGender(productDTO.getGender());
+                Gender productGender = Gender.isValidGender(productDTO.getGender());
                 product.setGender(productGender);
             }
 
@@ -174,70 +178,7 @@ public class ProductServices {
 
     public List<Product> filterProducts(FilterProductsDTO filters) {
         try {
-            // Set default values for missing filters
-            Long minPrice = filters.getMinPrice() == null ? 0 : filters.getMinPrice();
-            Long maxPrice = filters.getMaxPrice() == null ? Integer.MAX_VALUE : filters.getMaxPrice();
-
-            // Handle brand filter
-            Brand productBrand = null;
-            if (filters.getBrand() != null && !filters.getBrand().isEmpty()) {
-                productBrand = Brand.Adidas.isValidBrand(filters.getBrand());
-            }
-
-            // Handle search term
-            String searchTerm = "";
-            if (filters.getSearchTerm() != null) {
-                searchTerm = filters.getSearchTerm();
-            }
-
-            // Handle sorting - without ignoreCase()
-            Sort sort = Sort.by(Sort.Direction.ASC, "price");
-            if (filters.getSortDirection() == null || filters.getSortDirection().isEmpty()) {
-                filters.setSortDirection("asc");
-            }
-
-            if (filters.getSortBy() != null && !filters.getSortBy().isEmpty()) {
-                if (!filters.getSortBy().equals("price") && !filters.getSortBy().equals("name")) {
-                    throw new RuntimeException("Not a valid sorting field");
-                }
-
-                if (!filters.getSortDirection().equals("asc") && !filters.getSortDirection().equals("desc")) {
-                    throw new RuntimeException("Not a valid sorting parameter");
-                }
-                Sort.Direction direction = Sort.Direction.fromString(filters.getSortDirection());
-                sort = Sort.by(direction, filters.getSortBy());
-            }
-
-            // Handle gender filter
-            Gender gender = null;
-            if (filters.getGender() != null && !filters.getGender().isEmpty()) {
-                gender = Gender.Men.isValidGender(filters.getGender());
-            }
-
-            // Handle category filter
-            Category productCategory = null;
-            if (filters.getCategory() != null && !filters.getCategory().isEmpty()) {
-                productCategory = Category.SportsWears.isValidCategory(filters.getCategory());
-            }
-
-            // Call the appropriate repository method based on which filters are present
-            if (productBrand == null && gender == null && productCategory == null) {
-                return productRepo.filterProductsBasic(minPrice, maxPrice, searchTerm, sort);
-            } else if (productBrand != null && gender == null && productCategory == null) {
-                return productRepo.filterProductsByBrand(minPrice, maxPrice, searchTerm, productBrand, sort);
-            } else if (productBrand == null && gender != null && productCategory == null) {
-                return productRepo.filterProductsByGender(minPrice, maxPrice, searchTerm, gender, sort);
-            } else if (productBrand == null && gender == null && productCategory != null) {
-                return productRepo.filterProductsByCategory(minPrice, maxPrice, searchTerm, productCategory, sort);
-            } else if (productBrand != null && gender != null && productCategory == null) {
-                return productRepo.filterProductsByBrandAndGender(minPrice, maxPrice, searchTerm, productBrand, gender, sort);
-            } else if (productBrand != null && gender == null && productCategory != null) {
-                return productRepo.filterProductsByBrandAndCategory(minPrice, maxPrice, searchTerm, productBrand, productCategory, sort);
-            } else if (productBrand == null && gender != null && productCategory != null) {
-                return productRepo.filterProductsByGenderAndCategory(minPrice, maxPrice, searchTerm, gender, productCategory, sort);
-            } else {
-                return productRepo.filterProductsWithAllFilters(minPrice, maxPrice, searchTerm, productBrand, gender, productCategory, sort);
-            }
+            return productQueryService.filterProducts(filters);
         } catch (Exception e) {
             logger.severe("Error fetching the products: " + e.getMessage());
             throw e;
@@ -260,33 +201,14 @@ public class ProductServices {
             List<Product> products = productRepo.findAll();
             return products.stream().map(product -> {
                 List<ReviewDTO> productReviews = reviewService.getReviewsByProductId(product.getId()).stream()
-                        .map(this::convertToReviewDTO)
+                        .map(ReviewMapper::convertToReviewDTO)
                         .collect(Collectors.toList());
 
-                return convertToProductCardDTO(product, productReviews);
+                return ProductMapper.convertToProductCardDTO(product, productReviews);
             }).collect(Collectors.toList());
         } catch (Exception e) {
             logger.severe("Error getting all product cards details: " + e.getMessage());
             throw new RuntimeException("Error getting all product cards details", e);
         }
-    }
-
-    private ReviewDTO convertToReviewDTO(Review review) {
-        ReviewDTO reviewDTO = new ReviewDTO();
-        reviewDTO.setProductId(review.getProductId());
-        reviewDTO.setUserName(review.getUserName());
-        reviewDTO.setRating(review.getRating());
-        reviewDTO.setComment(review.getComment());
-        return reviewDTO;
-    }
-
-    private ProductCardDTO convertToProductCardDTO(Product product, List<ReviewDTO> reviews) {
-        ProductCardDTO productCardDTO = new ProductCardDTO();
-        productCardDTO.setName(product.getName());
-        productCardDTO.setPrice(product.getPrice());
-        productCardDTO.setImageURL(product.getImageURL());
-        productCardDTO.setCategory(product.getCategory().toString());
-        productCardDTO.setReviews(reviews);
-        return productCardDTO;
     }
 }

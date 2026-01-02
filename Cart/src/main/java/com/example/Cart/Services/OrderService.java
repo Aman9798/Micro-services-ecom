@@ -6,10 +6,9 @@ import com.example.Cart.Entity.CartItem;
 import com.example.Cart.Entity.OrderItem;
 import com.example.Cart.Entity.Orders;
 import com.example.Cart.Exception.NotFoundException;
-import com.example.Cart.Repository.CartItemRepository;
-import com.example.Cart.Repository.CartRepository;
-import com.example.Cart.Repository.OrderItemRepository;
-import com.example.Cart.Repository.OrderRepository;
+import com.example.Cart.Facade.CartPersistenceFacade;
+import com.example.Cart.Facade.OrderPersistenceFacade;
+import com.example.Cart.Mapper.OrderMapper;
 import com.example.Cart.Utils.JwtTokenUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +18,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.logging.Logger;
@@ -28,21 +28,15 @@ public class OrderService {
 
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
-    @Autowired
-    private OrderRepository orderRepo;
 
     @Autowired
     private WebClient webClient;
 
     @Autowired
-    private OrderItemRepository orderItemRepo;
+    private OrderPersistenceFacade orderPersistenceFacade;
 
     @Autowired
-    private CartItemRepository cartRepo;
-
-
-    @Autowired
-    private CartRepository cartRepository;
+    private CartPersistenceFacade cartPersistenceFacade;
 
     private static final Logger logger = Logger.getLogger(OrderService.class.getName());
 
@@ -54,24 +48,18 @@ public class OrderService {
 
             if (jwtTokenUtil.isAdmin(token)) {
                 logger.info("User is admin, fetching all orders");
-                List<Orders> userOrders = orderRepo.findAll();
-                List<OrdersDTO> orders = userOrders.stream().map(
-                        userOrder -> new OrdersDTO(
-                                userOrder.getOrderId(),
-                                userOrder.getOrderItems(),
-                                userOrder.getTotalPrice()
-                        )).collect(Collectors.toList());
+                List<Orders> userOrders = orderPersistenceFacade.findAllOrders();
+                List<OrdersDTO> orders = userOrders.stream()
+                        .map(OrderMapper::convertToOrderDTO)
+                        .collect(Collectors.toList());
                 logger.info("Fetched all orders successfully");
                 return orders;
             } else {
                 logger.info("User is not admin, fetching orders for user ID: " + userId);
-                List<Orders> userOrders = orderRepo.findByUserId(userId);
-                List<OrdersDTO> orders = userOrders.stream().map(
-                        userOrder -> new OrdersDTO(
-                                userOrder.getOrderId(),
-                                userOrder.getOrderItems(),
-                                userOrder.getTotalPrice()
-                        )).collect(Collectors.toList());
+                List<Orders> userOrders = orderPersistenceFacade.findOrdersByUserId(userId);
+                List<OrdersDTO> orders = userOrders.stream()
+                        .map(OrderMapper::convertToOrderDTO)
+                        .collect(Collectors.toList());
                 logger.info("Fetched orders for user ID: " + userId + " successfully");
                 return orders;
             }
@@ -88,12 +76,14 @@ public class OrderService {
             logger.info("Placing order for token: " + token);
             String user = jwtTokenUtil.getUserId(token);
             int userId = Integer.parseInt(user);
-            Orders userOrders = new Orders();
-            userOrders.setUserId(userId);
-            orderRepo.save(userOrders);
+            Orders userOrders = Orders.builder()
+                    .userId(userId)
+                    .orderItems(new ArrayList<>())
+                    .build();
+            orderPersistenceFacade.save(userOrders);
             logger.info("Created new order for user ID: " + userId);
 
-            Cart userCart = cartRepository.findByUserID(userId);
+            Cart userCart = cartPersistenceFacade.findCartByUserID(userId);
             List<CartItem> cartItems = userCart.getCartItems();
 
             if (cartItems == null || cartItems.isEmpty()) {
@@ -111,13 +101,10 @@ public class OrderService {
             }
             deleteCartItems(cartItems);
 
-            List<Orders> orders = orderRepo.findByUserId(userId);
-            List<OrdersDTO> ordersDTOs = orders.stream().map(
-                    userOrder -> new OrdersDTO(
-                            userOrder.getOrderId(),
-                            userOrder.getOrderItems(),
-                            userOrder.getTotalPrice()
-                    )).collect(Collectors.toList());
+            List<Orders> orders = orderPersistenceFacade.findOrdersByUserId(userId);
+            List<OrdersDTO> ordersDTOs = orders.stream()
+                    .map(OrderMapper::convertToOrderDTO)
+                    .collect(Collectors.toList());
             logger.info("Order placed successfully for user ID: " + userId);
             return ordersDTOs;
         } catch (Exception e) {
@@ -145,18 +132,22 @@ public class OrderService {
 
             AddressDTO userAddress = fetchAddress(addressId, authHeader);
             String address = userAddress.toString();
-            OrderItem newOrderItem = new OrderItem(product.getId(),
-                    product.getName(),
-                    product.getPrice(),
-                    quantity,
-                    userId,
-                    userDetails.getName(),
-                    address,
-                    userDetails.getPhoneNumber(),
-                    product.getImageURL());
+            OrderItem newOrderItem = OrderItem.builder()
+                    .createdAt(new Date())
+                    .productId(product.getId())
+                    .productName(product.getName())
+                    .price(product.getPrice())
+                    .quantity(quantity)
+                    .userId(userId)
+                    .userName(userDetails.getName())
+                    .Address(address)
+                    .phoneNumber(userDetails.getPhoneNumber())
+                    .imageURL(product.getImageURL())
+                    .order(userOrders)
+                    .build();
+
             reduceStock(quantity, productId);
-            newOrderItem.setOrder(userOrders);
-            orderItemRepo.save(newOrderItem);
+            orderPersistenceFacade.save(newOrderItem);
             userOrders.getOrderItems().add(newOrderItem);
             logger.info("Order item created successfully for product ID: " + productId);
         } catch (Exception e) {
@@ -171,9 +162,11 @@ public class OrderService {
             logger.info("Processing buy now for token: " + token);
             String user = jwtTokenUtil.getUserId(token);
             int userId = Integer.parseInt(user);
-            Orders userOrders = new Orders();
-            userOrders.setUserId(userId);
-            orderRepo.save(userOrders);
+            Orders userOrders = Orders.builder()
+                    .userId(userId)
+                    .orderItems(new ArrayList<>())
+                    .build();
+            orderPersistenceFacade.save(userOrders);
             logger.info("Created new order for user ID: " + userId);
 
             UserDTO userDetails = getUser(userId);
@@ -184,16 +177,15 @@ public class OrderService {
 
             int addressId = cartItemDTO.getAddressId();
             createOrderItem(userOrders, cartItemDTO.getProductId(), cartItemDTO.getQuantity(), userDetails, addressId, authHeader);
-            List<Orders> orders = orderRepo.findByUserId(userId);
-            List<OrdersDTO> ordersDTOs = orders.stream().map(
-                    userOrder -> new OrdersDTO(
-                            userOrder.getOrderId(),
-                            userOrder.getOrderItems(),
-                            userOrder.getTotalPrice()
-                    )).collect(Collectors.toList());
-            CartItem newCartItem = new CartItem();
-            newCartItem.setProductId(cartItemDTO.getProductId());
-            newCartItem.setQuantity(cartItemDTO.getQuantity());
+            List<Orders> orders = orderPersistenceFacade.findOrdersByUserId(userId);
+            List<OrdersDTO> ordersDTOs = orders.stream()
+                    .map(OrderMapper::convertToOrderDTO)
+                    .collect(Collectors.toList());
+
+            CartItem newCartItem = CartItem.builder()
+                    .productId(cartItemDTO.getProductId())
+                    .quantity(cartItemDTO.getQuantity())
+                    .build();;
 
             logger.info("Buy now processed successfully for user ID: " + userId);
             return ordersDTOs;
@@ -260,7 +252,7 @@ public class OrderService {
         try {
             logger.info("Deleting cart items");
             for (CartItem cartItem : cartItems) {
-                 cartRepo.deleteByProductId(cartItem.getProductId());
+                cartPersistenceFacade.deleteCartItemByProductId(cartItem.getProductId());
             }
             logger.info("Cart items deleted successfully");
         } catch (Exception e) {
@@ -291,7 +283,7 @@ public class OrderService {
     public OrdersDTO getOrderById(int orderId, String token) {
         try {
             logger.info("Fetching order with ID: " + orderId);
-            Orders userOrder = orderRepo.findById(orderId).orElseThrow(() -> new NotFoundException("No such order Found"));
+            Orders userOrder = orderPersistenceFacade.findOrderById(orderId);
             String user = jwtTokenUtil.getUserId(token);
             boolean isAdmin = jwtTokenUtil.isAdmin(token);
             int userId = Integer.parseInt(user);
@@ -300,7 +292,7 @@ public class OrderService {
                 throw new RuntimeException("Order doesn't belong to the user");
             }
             logger.info("Fetched order successfully with ID: " + orderId);
-            return new OrdersDTO(userOrder.getOrderId(), userOrder.getOrderItems(), userOrder.getTotalPrice());
+            return OrderMapper.convertToOrderDTO(userOrder);
         } catch (Exception e) {
             logger.severe("Error fetching order: " + e.getMessage());
             throw e;
@@ -313,7 +305,7 @@ public class OrderService {
             String userId = jwtTokenUtil.getUserId(token);
             int userID = Integer.parseInt(userId);
             //System.out.println(userID);
-            List<OrderItem> orderItems =  orderItemRepo.findByUserIdAndProductId(userID,productId);
+            List<OrderItem> orderItems =  orderPersistenceFacade.findOrderItemsByUserIdAndProductId(userID, productId);
         //    System.out.println(!orderItems.isEmpty());
             return (!orderItems.isEmpty());
 

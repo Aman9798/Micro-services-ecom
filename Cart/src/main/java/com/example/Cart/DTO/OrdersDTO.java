@@ -3,10 +3,12 @@ package com.example.Cart.DTO;
 import com.example.Cart.Entity.OrderItem;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import lombok.Builder;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Builder
 public class OrdersDTO {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

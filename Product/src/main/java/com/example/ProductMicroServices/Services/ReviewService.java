@@ -49,20 +49,18 @@ public class ReviewService {
         }
 
         System.out.println("order was created by user");
-        Review newReview = new Review();
-        String userId = jwtTokenUtil.getUserId(token);
-        newReview.setProductId(review.getProductId());
-        newReview.setUserId(userId);
-        newReview.setCreatedAt(new Date());
-        newReview.setRating(review.getRating());
-        newReview.setComment(review.getComment());
-        newReview.setUserName(review.getUserName());
+
+        Review newReview = Review.builder()
+                .productId(review.getProductId())
+                .userId(jwtTokenUtil.getUserId(token))
+                .userName(review.getUserName())
+                .rating(review.getRating())
+                .comment(review.getComment())
+                .createdAt(new Date())
+                .build();
+
         reviewRepository.save(newReview);
-
         updateProductReviewData(review.getProductId());
-
-
-
 
         return review;
     }
@@ -70,7 +68,6 @@ public class ReviewService {
     private void updateProductReviewData(int productId) {
 
         List<Review> allReviews = reviewRepository.findByProductId(productId);
-
 
         Double avgRating = 0.0;
         if (!allReviews.isEmpty()) {
@@ -81,9 +78,7 @@ public class ReviewService {
             avgRating = sum / allReviews.size();
         }
 
-
         int reviewCount = allReviews.size();
-
 
         Product product = productRepository.findById(productId).orElseThrow();
         product.setAverageRating(avgRating);

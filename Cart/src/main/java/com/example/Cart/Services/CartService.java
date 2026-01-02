@@ -6,8 +6,8 @@ import com.example.Cart.Entity.Cart;
 import com.example.Cart.Entity.CartItem;
 import com.example.Cart.DTO.ProductDTO;
 import com.example.Cart.Exception.NotFoundException;
-import com.example.Cart.Repository.CartRepository;
-import com.example.Cart.Repository.CartItemRepository;
+import com.example.Cart.Facade.CartPersistenceFacade;
+import com.example.Cart.Mapper.CartMapper;
 import com.example.Cart.Utils.JwtTokenUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import java.util.List;
@@ -24,10 +26,7 @@ import java.util.Optional;
 public class CartService {
 
     @Autowired
-    private CartRepository cartRepository;
-
-    @Autowired
-    private CartItemRepository cartItemRepository;
+    private CartPersistenceFacade cartPersistenceFacade;
 
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
@@ -40,7 +39,7 @@ public class CartService {
     public Cart getCartByUserId(int userId) {
         try {
             logger.info("Fetching cart for user ID: " + userId);
-            return cartRepository.findByUserID(userId);
+            return cartPersistenceFacade.findCartByUserID(userId);
         } catch (Exception e) {
             logger.severe("Error fetching cart by user ID: " + e.getMessage());
             throw new RuntimeException("Error fetching cart by user ID", e);
@@ -52,9 +51,17 @@ public class CartService {
             String user = jwtTokenUtil.getUserId(token);
             int userId = Integer.parseInt(user);
             logger.info("Fetching cart for user ID: " + userId);
-            Cart cart = cartRepository.findByUserID(userId);
-            CartDTO userCart = new CartDTO(cart.getCartId(), cart.getCartItems(),cart.getTotalPrice());
-            return userCart;
+            Cart cart = cartPersistenceFacade.findCartByUserID(userId);
+
+            if (cart == null) {
+                cart = Cart.builder()
+                        .userID(userId)
+                        .cartItems(new ArrayList<>())
+                        .build();
+                cart = cartPersistenceFacade.save(cart);
+            }
+
+            return CartMapper.convertToCartDTO(cart);
         } catch (Exception e) {
             logger.severe("Error fetching cart: " + e.getMessage());
             throw new RuntimeException(e.getMessage(), e);
@@ -74,7 +81,7 @@ public class CartService {
                 logger.warning("CartItem not found in user's cart");
                 throw new RuntimeException("CartItem not found in user's cart");
             }
-            CartItem existingItem = cartItemRepository.findById(cartItemId).orElseThrow(() -> new RuntimeException("CartItem not found"));
+            CartItem existingItem = cartPersistenceFacade.findCartItemByID(cartItemId);
             if (quantity < 0) {
                 logger.warning("Quantity cannot be less than or equal to 0");
                 throw new RuntimeException("Quantity cannot be less than or equal to 0");
@@ -82,11 +89,11 @@ public class CartService {
                 userCart.getCartItems().removeIf(item -> item.getCartItemId() == cartItemId);
             } else {
                 existingItem.setQuantity(quantity);
-                cartItemRepository.save(existingItem);
+                cartPersistenceFacade.save(existingItem);
             }
-            cartRepository.save(userCart);
+            cartPersistenceFacade.save(userCart);
             Cart cart = existingItem.getCart();
-            return new CartDTO(cart.getCartId(), cart.getCartItems(),cart.getTotalPrice());
+            return CartMapper.convertToCartDTO(cart);
         } catch (RuntimeException e) {
             logger.severe("Error updating cart item: " + e.getMessage());
             throw e;
@@ -101,9 +108,12 @@ public class CartService {
             logger.info("Adding cart item for user ID: " + userId);
             Cart cart = getCartByUserId(userId);
             if (cart == null) {
-                cart = new Cart();
-                cart.setUserID(userId);
-                cartRepository.save(cart);
+                cart = Cart.builder()
+                        .userID(userId)
+                        .cartItems(new ArrayList<>())
+                        .build();
+
+                cartPersistenceFacade.save(cart);
             }
 
             ProductDTO product = getProducts(cartItemDTO.getProductId());
@@ -121,14 +131,16 @@ public class CartService {
                 cartItem.setCart(cart);
                 cartItem.setQuantity(cartItem.getQuantity() + cartItemDTO.getQuantity());
             } else {
-                CartItem newCartItem = new CartItem();
-                newCartItem.setProductId(cartItemDTO.getProductId());
-                newCartItem.setQuantity(cartItemDTO.getQuantity());
-                newCartItem.setProductName(product.getName());
-                newCartItem.setCart(cart);
-                newCartItem.setPrice(product.getPrice());
-                newCartItem.setImageUrl(product.getImageURL());
-                cartItemRepository.save(newCartItem);
+                CartItem newCartItem = CartItem.builder()
+                        .productName(product.getName())
+                        .productId(cartItemDTO.getProductId())
+                        .cart(cart)
+                        .quantity(cartItemDTO.getQuantity())
+                        .price(product.getPrice())
+                        .imageUrl(product.getImageURL())
+                        .build();
+
+                cartPersistenceFacade.save(newCartItem);
                 cart.getCartItems().add(newCartItem);
             }
             return cart.getCartItems();
@@ -157,7 +169,7 @@ public class CartService {
     public List<CartItem> getCartByCartId(int cartId) {
         try {
             logger.info("Fetching cart with ID: " + cartId);
-            Cart userCart = cartRepository.findById(cartId).orElseThrow(() -> new NotFoundException("No cart present"));
+            Cart userCart = cartPersistenceFacade.findCartByID(cartId);
             return userCart.getCartItems();
         } catch (NotFoundException e) {
             logger.warning("No cart present: " + e.getMessage());

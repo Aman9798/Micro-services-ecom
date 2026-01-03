@@ -3,8 +3,7 @@ package com.example.playKart.Controller;
 
 import com.example.playKart.DTO.*;
 import com.example.playKart.Entity.Address;
-import com.example.playKart.Entity.User;
-import com.example.playKart.Services.UserServices;
+import com.example.playKart.Service.UserService;
 import com.example.playKart.Utils.JwtTokenUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import javax.xml.bind.SchemaOutputResolver;
 import java.util.List;
 
 @RestController
@@ -21,7 +19,7 @@ import java.util.List;
 public class UserController {
 
     @Autowired
-    UserServices userService;
+    UserService userService;
 
     @Autowired
     JwtTokenUtil jwtTokenUtil;

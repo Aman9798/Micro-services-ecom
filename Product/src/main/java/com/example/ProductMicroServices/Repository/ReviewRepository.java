@@ -9,13 +9,9 @@ import java.util.List;
 @Repository
 public interface ReviewRepository extends MongoRepository<Review, String> {
 
-
     List<Review> findByProductId(int productId);
-
 
     List<Review> findByProductIdAndRating(int productId, Integer rating);
 
     long countByProductId(int productId);
-
-    void deleteByProductId(int productId);
 }

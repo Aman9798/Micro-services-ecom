@@ -1,10 +1,10 @@
-package com.example.ProductMicroServices.Services;
+package com.example.ProductMicroServices.Service;
 
-import com.example.ProductMicroServices.Clients.OrderClient;
+import com.example.ProductMicroServices.Delegate.OrderDelegate;
 import com.example.ProductMicroServices.DTO.ReviewDTO;
 import com.example.ProductMicroServices.Entity.Product;
 import com.example.ProductMicroServices.Entity.Review;
-import com.example.ProductMicroServices.Repository.ProductRepo;
+import com.example.ProductMicroServices.Repository.ProductRepository;
 import com.example.ProductMicroServices.Repository.ReviewRepository;
 import com.example.ProductMicroServices.Utils.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,9 +12,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
 import java.util.Date;
 import java.util.List;
@@ -34,15 +32,15 @@ public class ReviewService {
     private JwtTokenUtil jwtTokenUtil;
 
     @Autowired
-    private OrderClient orderClient;
+    private OrderDelegate orderDelegate;
 
     @Autowired
-    private ProductRepo productRepository;
+    private ProductRepository productRepository;
 
     public ReviewDTO createReview(ReviewDTO review,String authHeader) {
 
         String token = authHeader.substring(7);
-        if(!orderClient.hasUserBoughtProduct(review.getProductId(),authHeader)){
+        if(!orderDelegate.hasUserBoughtProduct(review.getProductId(),authHeader)){
             throw new RuntimeException("Cannot add review");
         }
 

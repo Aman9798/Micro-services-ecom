@@ -1,4 +1,4 @@
-package com.example.ProductMicroServices.Clients;
+package com.example.ProductMicroServices.Delegate;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
@@ -9,14 +9,14 @@ import reactor.core.publisher.Mono;
 import java.util.logging.Logger;
 
 @Service
-public class OrderClient {
+public class OrderDelegate {
 
     @Autowired
     private WebClient webClient;
 
     private final String baseUrl = "http://localhost:8082/order";
 
-    private static final Logger logger = Logger.getLogger(OrderClient.class.getName());
+    private static final Logger logger = Logger.getLogger(OrderDelegate.class.getName());
 
     public boolean hasUserBoughtProduct(int productId, String authHeader) {
         String endpoint = baseUrl + "/product/" + productId;

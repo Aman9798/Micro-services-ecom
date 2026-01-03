@@ -1,4 +1,4 @@
-package com.example.playKart.Services;
+package com.example.playKart.Service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,10 +8,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 @SpringBootTest
-class UserServicesTest {
+class UserServiceTest {
 
     @Autowired
-    private UserServices userServices;
+    private UserService userService;
     String token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI2IiwiaWF0IjoxNzQxOTMyNTcwLCJpc0FkbWluIjp0cnVlfQ.ag2sp-3lVSomqhMqn1XotEGz5hMB92TEG2QiHDMOdzo";
     String token1 = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyNCIsImlhdCI6MTc0MTkzMjc3MSwiaXNBZG1pbiI6ZmFsc2V9.2zBB7iIzMp9Qje7ogFTm4yqwK3k8NjIMVuFwfXncnso";
 
@@ -22,7 +22,7 @@ class UserServicesTest {
     @Test
     void getAllUsers() {
 
-        assertNotNull(userServices.getAllUsers(token1));
+        assertNotNull(userService.getAllUsers(token1));
     }
 
     @Test

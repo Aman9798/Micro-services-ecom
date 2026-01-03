@@ -2,7 +2,7 @@ package com.example.ProductMicroServices.Controller;
 
 import com.example.ProductMicroServices.DTO.ReviewDTO;
 import com.example.ProductMicroServices.Entity.Review;
-import com.example.ProductMicroServices.Services.ReviewService;
+import com.example.ProductMicroServices.Service.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/reviews")

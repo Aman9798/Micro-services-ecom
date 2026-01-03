@@ -1,6 +1,6 @@
-package com.example.Cart.Services;
+package com.example.Cart.Service;
 
-import com.example.Cart.Client.ProductClient;
+import com.example.Cart.Delegate.ProductDelegate;
 import com.example.Cart.DTO.CartDTO;
 import com.example.Cart.DTO.CartItemDTO;
 import com.example.Cart.Entity.Cart;
@@ -13,7 +13,6 @@ import com.example.Cart.Utils.JwtTokenUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.ArrayList;
 import java.util.logging.Logger;
@@ -31,7 +30,7 @@ public class CartService {
     private JwtTokenUtil jwtTokenUtil;
 
     @Autowired
-    private ProductClient productClient;
+    private ProductDelegate productDelegate;
 
     private static final Logger logger = Logger.getLogger(CartService.class.getName());
 
@@ -115,7 +114,7 @@ public class CartService {
                 cartPersistenceFacade.save(cart);
             }
 
-            ProductDTO product = productClient.getProductById(cartItemDTO.getProductId());
+            ProductDTO product = productDelegate.getProductById(cartItemDTO.getProductId());
             if (product == null) {
                 logger.warning("No such product exists");
                 throw new NotFoundException("No such product exists");

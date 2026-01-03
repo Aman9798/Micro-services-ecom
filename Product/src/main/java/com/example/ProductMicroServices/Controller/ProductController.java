@@ -6,7 +6,7 @@ import com.example.ProductMicroServices.DTO.ProductCardDTO;
 import com.example.ProductMicroServices.DTO.ProductDTO;
 import com.example.ProductMicroServices.DTO.UpdateProductDTO;
 import com.example.ProductMicroServices.Entity.Product;
-import com.example.ProductMicroServices.Services.ProductServices;
+import com.example.ProductMicroServices.Service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,23 +21,23 @@ import java.util.List;
 public class ProductController {
 
     @Autowired
-    ProductServices productServices;
+    ProductService productService;
 
     @GetMapping("/")
     public ResponseEntity<List<Product>> getAllProducts(){
-        List<Product> products = productServices.getAllProducts();
+        List<Product> products = productService.getAllProducts();
         return new ResponseEntity<>(products,HttpStatus.OK);
     }
 
     @GetMapping("/{prodId}")
     public ResponseEntity<Product> getProductByID(@PathVariable Integer prodId){
-        Product product = productServices.getProductById(prodId);
+        Product product = productService.getProductById(prodId);
         return new ResponseEntity<>(product,HttpStatus.OK);
     }
 
     @GetMapping("/card")
     public ResponseEntity <List<ProductCardDTO>> getAllProductCards(){
-        List<ProductCardDTO> productCards = productServices.getAllProductCardsDetails();
+        List<ProductCardDTO> productCards = productService.getAllProductCardsDetails();
         return new ResponseEntity<>(productCards,HttpStatus.OK);
     }
 
@@ -45,7 +45,7 @@ public class ProductController {
     @GetMapping("/category/{category}")
     public ResponseEntity<List<Product>> getProductsByCategory(@PathVariable String category) {
 
-        List<Product> products = productServices.getProductsByCategory(category);
+        List<Product> products = productService.getProductsByCategory(category);
         return new ResponseEntity<>(products,HttpStatus.OK);
 
     }
@@ -53,7 +53,7 @@ public class ProductController {
     @GetMapping("/gender/{gender}")
     public ResponseEntity<List<Product>> getProductsByGender(@PathVariable String gender) {
 
-        List<Product> products = productServices.getProductsByGender(gender);
+        List<Product> products = productService.getProductsByGender(gender);
         return new ResponseEntity<>(products,HttpStatus.OK);
 
     }
@@ -63,7 +63,7 @@ public class ProductController {
     public ResponseEntity<Product> addProduct(@Valid @RequestBody ProductDTO newProduct,@RequestHeader("Authorization") String authHeader){
 
         String token = authHeader.substring(7);
-        Product product = productServices.addProduct(newProduct,token);
+        Product product = productService.addProduct(newProduct,token);
         return new ResponseEntity<>(product,HttpStatus.CREATED);
     }
 
@@ -72,7 +72,7 @@ public class ProductController {
     public ResponseEntity<Product> updateProduct(@PathVariable Integer prodId, @Valid @RequestBody UpdateProductDTO productDTO, @RequestHeader("Authorization") String authHeader){
 
         String token = authHeader.substring(7);
-        Product product = productServices.updateProduct(prodId,productDTO,token);
+        Product product = productService.updateProduct(prodId,productDTO,token);
         return new ResponseEntity<>(product,HttpStatus.OK);
     }
 
@@ -80,20 +80,20 @@ public class ProductController {
     @DeleteMapping("/{prodId}")
     public ResponseEntity<String> deleteProduct(@PathVariable Integer prodId,@RequestHeader("Authorization") String authHeader){
         String token = authHeader.substring(7);
-        productServices.deleteProduct(prodId,token);
+        productService.deleteProduct(prodId,token);
         return new ResponseEntity<>("Product Deleted",HttpStatus.NO_CONTENT);
     }
 
     @PostMapping("/filter")
     public ResponseEntity<List<Product>> filterProducts(@RequestBody FilterProductsDTO filters) {
-        List<Product> products = productServices.filterProducts(filters);
+        List<Product> products = productService.filterProducts(filters);
         return new ResponseEntity<>(products, HttpStatus.OK);
     }
 
     @PatchMapping("/reduceStock/{prodId}")
     public void reduceStock(@RequestParam int quantity,@PathVariable Integer prodId){
 
-        productServices.reduceStock(prodId, quantity);
+        productService.reduceStock(prodId, quantity);
 
     }
 

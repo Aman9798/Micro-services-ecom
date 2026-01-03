@@ -4,7 +4,7 @@ package com.example.Cart.Controller;
 import com.example.Cart.DTO.AddressRequestDTO;
 import com.example.Cart.DTO.CartItemDTO;
 import com.example.Cart.DTO.OrdersDTO;
-import com.example.Cart.Services.OrderService;
+import com.example.Cart.Service.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

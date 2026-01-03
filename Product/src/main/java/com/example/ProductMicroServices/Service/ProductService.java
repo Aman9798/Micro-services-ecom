@@ -1,7 +1,6 @@
-package com.example.ProductMicroServices.Services;
+package com.example.ProductMicroServices.Service;
 
 import com.example.ProductMicroServices.DTO.*;
-import com.example.ProductMicroServices.Entity.Review;
 import com.example.ProductMicroServices.Enums.Gender;
 import com.example.ProductMicroServices.Filter.ProductQueryService;
 import com.example.ProductMicroServices.Mapper.ProductMapper;
@@ -12,22 +11,20 @@ import com.example.ProductMicroServices.Enums.Category;
 import com.example.ProductMicroServices.Exception.ProductNotFoundException;
 import com.example.ProductMicroServices.Exception.UnauthorizedAccess;
 import com.example.ProductMicroServices.Entity.Product;
-import com.example.ProductMicroServices.Repository.ProductRepo;
+import com.example.ProductMicroServices.Repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.sql.SQLOutput;
 import java.util.logging.Logger;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class ProductServices {
+public class ProductService {
 
     @Autowired
-    ProductRepo productRepo;
+    ProductRepository productRepository;
 
     @Autowired
     JwtTokenUtil jwtTokenUtil;
@@ -38,12 +35,12 @@ public class ProductServices {
     @Autowired
     ProductQueryService productQueryService;
 
-    private static final Logger logger = Logger.getLogger(ProductServices.class.getName());
+    private static final Logger logger = Logger.getLogger(ProductService.class.getName());
 
     public List<Product> getAllProducts() {
         try {
             logger.info("Fetching all products");
-            return productRepo.findAll();
+            return productRepository.findAll();
         } catch (Exception e) {
             logger.severe("Error fetching all products: " + e.getMessage());
             throw e;
@@ -54,7 +51,7 @@ public class ProductServices {
     public Product getProductById(Integer prodId) {
         try {
             logger.info("Fetching product with ID: {}"+ prodId);
-            return productRepo.findById(prodId).orElseThrow(() -> new ProductNotFoundException("No such Product Present"));
+            return productRepository.findById(prodId).orElseThrow(() -> new ProductNotFoundException("No such Product Present"));
         } catch (Exception e) {
             logger.severe("Error fetching the product with prod ID " + prodId);
             throw e;
@@ -65,7 +62,7 @@ public class ProductServices {
         try {
             logger.info("Fetching products by category: {}"+ category);
             Category productCategory = Category.isValidCategory(category);
-            return productRepo.findByCategory(productCategory);
+            return productRepository.findByCategory(productCategory);
         } catch (Exception e) {
             logger.severe("Error fetching the product with category : " + category);
             throw e;
@@ -76,7 +73,7 @@ public class ProductServices {
         try {
             logger.info("Fetching products by category: {}"+ gender);
             Gender productGender = Gender.isValidGender(gender);
-            return productRepo.findByGender(productGender);
+            return productRepository.findByGender(productGender);
         } catch (Exception e) {
             logger.severe("Error fetching the product with gender " + gender);
             throw e;
@@ -103,7 +100,7 @@ public class ProductServices {
                     .build();
 
             newProduct.setId();
-            productRepo.save(newProduct);
+            productRepository.save(newProduct);
             logger.info("Product added successfully: {}"+ newProduct.getId());
             return newProduct;
         } catch (Exception e) {
@@ -120,7 +117,7 @@ public class ProductServices {
                 throw new UnauthorizedAccess("This is an admin functionality");
             }
 
-            Product product = productRepo.findById(prodId).orElseThrow(() -> new ProductNotFoundException("No such Product Present"));
+            Product product = productRepository.findById(prodId).orElseThrow(() -> new ProductNotFoundException("No such Product Present"));
 
             if (productDTO.getName() != null && !productDTO.getName().isEmpty()) {
                 product.setName(productDTO.getName());
@@ -151,7 +148,7 @@ public class ProductServices {
                 product.setGender(productGender);
             }
 
-            productRepo.save(product);
+            productRepository.save(product);
             logger.info("Product updated successfully: {}"+ product.getId());
             return product;
         } catch (Exception e) {
@@ -167,8 +164,8 @@ public class ProductServices {
                 logger.warning("Unauthorized access attempt to delete product");
                 throw new UnauthorizedAccess("This is an admin functionality");
             }
-            productRepo.findById(prodId).orElseThrow(() -> new ProductNotFoundException("No such Product Present"));
-            productRepo.deleteById(prodId);
+            productRepository.findById(prodId).orElseThrow(() -> new ProductNotFoundException("No such Product Present"));
+            productRepository.deleteById(prodId);
             logger.info("Product deleted successfully: {}" + prodId);
         } catch (Exception e) {
             logger.severe("Error deleting the product with prod ID " + prodId);
@@ -187,9 +184,9 @@ public class ProductServices {
 
     public void reduceStock(Integer prodId, int quantity) {
         try {
-            Product product = productRepo.findById(prodId).orElseThrow(() -> new ProductNotFoundException("No such Product Present"));
+            Product product = productRepository.findById(prodId).orElseThrow(() -> new ProductNotFoundException("No such Product Present"));
             product.setStock(product.getStock() - quantity);
-            productRepo.save(product);
+            productRepository.save(product);
         } catch (Exception e) {
             logger.severe("Error reducing the product stock") ;
             throw e;
@@ -198,7 +195,7 @@ public class ProductServices {
 
     public List<ProductCardDTO> getAllProductCardsDetails() {
         try {
-            List<Product> products = productRepo.findAll();
+            List<Product> products = productRepository.findAll();
             return products.stream().map(product -> {
                 List<ReviewDTO> productReviews = reviewService.getReviewsByProductId(product.getId()).stream()
                         .map(ReviewMapper::convertToReviewDTO)

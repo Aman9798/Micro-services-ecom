@@ -1,7 +1,7 @@
-package com.example.Cart.Services;
+package com.example.Cart.Service;
 
-import com.example.Cart.Client.ProductClient;
-import com.example.Cart.Client.UserClient;
+import com.example.Cart.Delegate.ProductDelegate;
+import com.example.Cart.Delegate.UserDelegate;
 import com.example.Cart.DTO.*;
 import com.example.Cart.Entity.Cart;
 import com.example.Cart.Entity.CartItem;
@@ -29,10 +29,10 @@ public class OrderService {
     private JwtTokenUtil jwtTokenUtil;
 
     @Autowired
-    private UserClient userClient;
+    private UserDelegate userDelegate;
 
     @Autowired
-    private ProductClient productClient;
+    private ProductDelegate productDelegate;
 
     @Autowired
     private OrderPersistenceFacade orderPersistenceFacade;
@@ -92,7 +92,7 @@ public class OrderService {
                 logger.warning("No products in cart for user ID: " + userId);
                 throw new NotFoundException("No Products in cart found");
             }
-            UserDTO userDetails = userClient.getUserFromUserId(userId);
+            UserDTO userDetails = userDelegate.getUserFromUserId(userId);
             if (userDetails == null) {
                 logger.warning("No such user found with ID: " + userId);
                 throw new NotFoundException("No such user found");
@@ -118,7 +118,7 @@ public class OrderService {
     private void createOrderItem(Orders userOrders, int productId, int quantity, UserDTO userDetails, int addressId, String authHeader) {
         try {
             logger.info("Creating order item for product ID: " + productId + ", quantity: " + quantity);
-            ProductDTO product = productClient.getProductById(productId);
+            ProductDTO product = productDelegate.getProductById(productId);
             if (product == null) {
                 logger.warning("No such product present with ID: " + productId);
                 throw new NotFoundException("No such product present");
@@ -132,7 +132,7 @@ public class OrderService {
             String user = jwtTokenUtil.getUserId(token);
             int userId = Integer.parseInt(user);
 
-            AddressDTO userAddress = userClient.fetchAddress(addressId, authHeader);
+            AddressDTO userAddress = userDelegate.fetchAddress(addressId, authHeader);
             String address = userAddress.toString();
             OrderItem newOrderItem = OrderItem.builder()
                     .createdAt(new Date())
@@ -148,7 +148,7 @@ public class OrderService {
                     .order(userOrders)
                     .build();
 
-            productClient.reduceStock(quantity, productId);
+            productDelegate.reduceStock(quantity, productId);
             orderPersistenceFacade.save(newOrderItem);
             userOrders.getOrderItems().add(newOrderItem);
             logger.info("Order item created successfully for product ID: " + productId);
@@ -171,7 +171,7 @@ public class OrderService {
             orderPersistenceFacade.save(userOrders);
             logger.info("Created new order for user ID: " + userId);
 
-            UserDTO userDetails = userClient.getUserFromUserId(userId);
+            UserDTO userDetails = userDelegate.getUserFromUserId(userId);
             if (userDetails == null) {
                 logger.warning("No such user found with ID: " + userId);
                 throw new NotFoundException("No such user found");

@@ -1,4 +1,4 @@
-package com.example.playKart.Services;
+package com.example.playKart.Service;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;

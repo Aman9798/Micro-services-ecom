@@ -1,4 +1,4 @@
-package com.example.playKart.Services;
+package com.example.playKart.Service;
 
 import com.example.playKart.DTO.*;
 import com.example.playKart.Exception.AddressNotFoundException;
@@ -23,7 +23,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class UserServices {
+public class UserService {
 
     @Autowired
     UserRepository userRepo;
@@ -40,7 +40,7 @@ public class UserServices {
     @Autowired
     JwtTokenUtil jwtTokenUtil;
 
-    private static final Logger logger = Logger.getLogger(UserServices.class.getName());
+    private static final Logger logger = Logger.getLogger(UserService.class.getName());
 
     public ResponseEntity<?> registerUser(RegisterDTO userRegisterDTO) {
         try {

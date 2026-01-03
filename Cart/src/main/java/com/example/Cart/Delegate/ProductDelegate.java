@@ -1,7 +1,6 @@
-package com.example.Cart.Client;
+package com.example.Cart.Delegate;
 
 import com.example.Cart.DTO.ProductDTO;
-import com.example.Cart.Services.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
@@ -11,14 +10,14 @@ import reactor.core.publisher.Mono;
 import java.util.logging.Logger;
 
 @Service
-public class ProductClient {
+public class ProductDelegate {
 
     @Autowired
     private WebClient webClient;
 
     private final String baseUrl = "http://localhost:8081/products/";
 
-    private static final Logger logger = Logger.getLogger(ProductClient.class.getName());
+    private static final Logger logger = Logger.getLogger(ProductDelegate.class.getName());
 
     public ProductDTO getProductById(int productId) {
         String endpoint = baseUrl + productId;

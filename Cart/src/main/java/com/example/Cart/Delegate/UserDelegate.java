@@ -1,4 +1,4 @@
-package com.example.Cart.Client;
+package com.example.Cart.Delegate;
 
 import com.example.Cart.DTO.AddressDTO;
 import com.example.Cart.DTO.UserDTO;
@@ -11,14 +11,14 @@ import reactor.core.publisher.Mono;
 import java.util.logging.Logger;
 
 @Service
-public class UserClient {
+public class UserDelegate {
 
     @Autowired
     private WebClient webClient;
 
     private final String baseUrl = "http://localhost:8080/user/";
 
-    private static final Logger logger = Logger.getLogger(UserClient.class.getName());
+    private static final Logger logger = Logger.getLogger(UserDelegate.class.getName());
 
     public UserDTO getUserFromUserId(int userId) {
         String endpoint = baseUrl + userId;

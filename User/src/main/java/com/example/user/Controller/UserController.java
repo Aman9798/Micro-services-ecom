@@ -1,0 +1,103 @@
+package com.example.user.Controller;
+
+
+import com.example.user.DTO.*;
+import com.example.user.Entity.Address;
+import com.example.user.Service.UserService;
+import com.example.user.Utils.JwtTokenUtil;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("user")
+@CrossOrigin
+public class UserController {
+
+    @Autowired
+    UserService userService;
+
+    @Autowired
+    JwtTokenUtil jwtTokenUtil;
+
+    @GetMapping("/")
+    public List<ResponseUserDTO> getAllUsers(@RequestHeader("Authorization") String authHeader) {
+        String token = jwtTokenUtil.getToken(authHeader);
+        return userService.getAllUsers(token);
+    }
+
+    @PostMapping("login")
+    public ResponseEntity<?> login(@Valid @RequestBody LoginDTO userLoginDto) {
+        System.out.println(userLoginDto.getEmail());
+        return userService.loginUser(userLoginDto);
+    }
+
+    @PostMapping("register")
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterDTO userRegisterDto) {
+        return new ResponseEntity<>(userService.registerUser(userRegisterDto), HttpStatus.CREATED);
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<ResponseUserDTO> getUserDetails(@RequestHeader("Authorization") String authHeader) {
+        String token = jwtTokenUtil.getToken(authHeader);
+        ResponseUserDTO responseUserDTO = userService.getUserDetails(token);
+        return new ResponseEntity<>(responseUserDTO, HttpStatus.OK);
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<ResponseUserDTO> getUserById(@PathVariable int userId) {
+
+        ResponseUserDTO responseUserDTO = userService.getUserDetailsById(userId);
+        return new ResponseEntity<>(responseUserDTO, HttpStatus.OK);
+    }
+
+    @PostMapping("/address/")
+    public ResponseEntity<Address> addAddress(@Valid @RequestBody AddressDTO addressdto, @RequestHeader("Authorization") String authHeader) {
+        String token = jwtTokenUtil.getToken(authHeader);
+        Address createdAddress = userService.addAddress(addressdto, token);
+        return new ResponseEntity<>(createdAddress, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/address/")
+    public ResponseEntity<List<Address>> getUserAddresses(@RequestHeader("Authorization") String authHeader) {
+        String token = jwtTokenUtil.getToken(authHeader);
+        List<Address> addresses = userService.getUserAddresses(token);
+        return new ResponseEntity<>(addresses, HttpStatus.OK);
+    }
+
+    @PatchMapping("/")
+    public ResponseEntity<ResponseUserDTO> updateUserProfile(@RequestHeader("Authorization") String authHeader, @Valid @RequestBody UpdateUserDTO updateUserDTO) {
+        String token = jwtTokenUtil.getToken(authHeader);
+       // System.out.println(updateUserDTO.getName());
+        ResponseUserDTO responseUserDTO = userService.updateUserProfile(token, updateUserDTO);
+        return new ResponseEntity<>(responseUserDTO, HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("/address/{id}")
+    public ResponseEntity<String> deleteAddress(@PathVariable Integer id, @RequestHeader("Authorization") String authHeader) {
+        String token = jwtTokenUtil.getToken(authHeader);
+        userService.deleteAddress(id, token);
+        return new ResponseEntity<>("Address Removed Successfully", HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/address/{id}")
+    public ResponseEntity<Address> getAddressById(@PathVariable Integer id, @RequestHeader("Authorization") String authHeader) {
+      //  System.out.println("1");
+        String token = jwtTokenUtil.getToken(authHeader);
+        Address userAddress = userService.getAddressById(id, token);
+        return new ResponseEntity<>(userAddress, HttpStatus.OK);
+    }
+
+    @PatchMapping("/makeAdmin")
+    public ResponseEntity<ResponseUserDTO> makeUserAdmin(@RequestHeader("Authorization") String authHeader,@Valid @RequestBody AdminRequestDTO adminRequestDTO){
+        String token = jwtTokenUtil.getToken(authHeader);
+        ResponseUserDTO user = userService.makeUserAdmin(adminRequestDTO,token);
+        return new ResponseEntity<>(user,HttpStatus.OK);
+
+    }
+}
+

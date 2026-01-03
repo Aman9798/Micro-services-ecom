@@ -34,7 +34,7 @@ Getting Started
 Follow these steps to get the project up and running:
 
 1. Clone the Repository:
-git clone https://github.com/nightcrawler0112/Playkart_MicroServices.git
+git clone https://github.com/Aman9798/Micro-services-ecom.git
 
 3. Set Up the Database:
 MongoDB: Set up MongoDB to store product-related data for the Product Service.

@@ -2,7 +2,6 @@ package com.example.ProductMicroServices.Filter;
 
 import com.example.ProductMicroServices.DTO.FilterProductsDTO;
 import com.example.ProductMicroServices.Entity.Product;
-import com.example.ProductMicroServices.Filter.ProductFilterContext;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;

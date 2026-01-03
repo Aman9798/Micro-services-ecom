@@ -25,5 +25,7 @@ public class JwtTokenUtil {
         return claims.getSubject();
     }
 
-
+    public String getToken(String authHeader){
+        return authHeader.substring(7);
+    }
 }

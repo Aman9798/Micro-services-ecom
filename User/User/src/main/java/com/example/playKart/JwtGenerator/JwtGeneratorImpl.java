@@ -21,7 +21,7 @@ public class JwtGeneratorImpl implements JwtGeneratorInterface{
       //  System.out.println("Secret: " + secret);
         String jwtToken="";
         String secret = "newSecretKey";
-        jwtToken = Jwts.builder().setSubject(user.getUserId().toString()).setIssuedAt(new Date()).claim("isAdmin", user.isAdmin()).signWith(SignatureAlgorithm.HS256, secret).compact();
+        jwtToken = Jwts.builder().setSubject(String.valueOf(user.getUserId())).setIssuedAt(new Date()).claim("isAdmin", user.isAdmin()).signWith(SignatureAlgorithm.HS256, secret).compact();
         Map<String, String> jwtTokenGen = new HashMap<>();
         jwtTokenGen.put("token", jwtToken);
         jwtTokenGen.put("message", message);

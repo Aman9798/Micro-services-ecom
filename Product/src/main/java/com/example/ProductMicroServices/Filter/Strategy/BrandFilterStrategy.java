@@ -1,4 +1,4 @@
-package com.example.ProductMicroServices.Filter;
+package com.example.ProductMicroServices.Filter.Strategy;
 
 import com.example.ProductMicroServices.DTO.FilterProductsDTO;
 import com.example.ProductMicroServices.Enums.FilterStrategy;
@@ -8,26 +8,26 @@ import org.springframework.stereotype.Component;
 import java.util.regex.Pattern;
 
 @Component
-public class CategoryFilterStrategy implements ProductFilterStrategy {
+public class BrandFilterStrategy implements ProductFilterStrategy {
 
     @Override
     public FilterStrategy supports() {
-        return FilterStrategy.Category;
+        return FilterStrategy.Brand;
     }
 
     @Override
     public Criteria buildCriteria(FilterProductsDTO dto) {
 
-        if (dto.getCategory() == null || dto.getCategory().isBlank()) {
+        if (dto.getBrand() == null || dto.getBrand().isBlank()) {
             return null;
         }
 
         // Case-insensitive exact match
         Pattern pattern = Pattern.compile(
-                "^" + Pattern.quote(dto.getCategory()) + "$",
+                "^" + Pattern.quote(dto.getBrand()) + "$",
                 Pattern.CASE_INSENSITIVE
         );
 
-        return Criteria.where("category").regex(pattern);
+        return Criteria.where("brand").regex(pattern);
     }
 }

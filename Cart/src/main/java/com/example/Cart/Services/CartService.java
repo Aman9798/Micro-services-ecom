@@ -1,5 +1,6 @@
 package com.example.Cart.Services;
 
+import com.example.Cart.Client.ProductClient;
 import com.example.Cart.DTO.CartDTO;
 import com.example.Cart.DTO.CartItemDTO;
 import com.example.Cart.Entity.Cart;
@@ -11,10 +12,8 @@ import com.example.Cart.Mapper.CartMapper;
 import com.example.Cart.Utils.JwtTokenUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.logging.Logger;
@@ -32,7 +31,7 @@ public class CartService {
     private JwtTokenUtil jwtTokenUtil;
 
     @Autowired
-    private WebClient webClient;
+    private ProductClient productClient;
 
     private static final Logger logger = Logger.getLogger(CartService.class.getName());
 
@@ -116,7 +115,7 @@ public class CartService {
                 cartPersistenceFacade.save(cart);
             }
 
-            ProductDTO product = getProducts(cartItemDTO.getProductId());
+            ProductDTO product = productClient.getProductById(cartItemDTO.getProductId());
             if (product == null) {
                 logger.warning("No such product exists");
                 throw new NotFoundException("No such product exists");
@@ -147,22 +146,6 @@ public class CartService {
         } catch (Exception e) {
             logger.severe("Error adding cart item: " + e.getMessage());
             throw e;
-        }
-    }
-
-    private ProductDTO getProducts(int productId) {
-        String productServiceUrl = "http://localhost:8081/products/" + productId;
-        try {
-            logger.info("Fetching product with ID: " + productId);
-            return webClient.get()
-                    .uri(productServiceUrl)
-                    .retrieve()
-                    .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new RuntimeException("Product not found")))
-                    .bodyToMono(ProductDTO.class)
-                    .block();
-        } catch (Exception e) {
-            logger.severe("Error fetching product: " + e.getMessage());
-            return null;
         }
     }
 

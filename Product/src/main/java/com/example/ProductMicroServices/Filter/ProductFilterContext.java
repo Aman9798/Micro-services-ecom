@@ -1,8 +1,7 @@
 package com.example.ProductMicroServices.Filter;
 
 import com.example.ProductMicroServices.DTO.FilterProductsDTO;
-import com.example.ProductMicroServices.Entity.Product;
-import org.springframework.data.jpa.domain.Specification;
+import com.example.ProductMicroServices.Filter.Strategy.ProductFilterStrategy;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Component;
 

@@ -8,6 +8,7 @@ import com.example.playKart.Exception.UserNotFoundException;
 import com.example.playKart.JwtGenerator.JwtGeneratorInterface;
 import com.example.playKart.Entity.Address;
 import com.example.playKart.Entity.User;
+import com.example.playKart.Mapper.UserMapper;
 import com.example.playKart.Repository.AddressRepository;
 import com.example.playKart.Repository.UserRepository;
 import com.example.playKart.Utils.JwtTokenUtil;
@@ -44,21 +45,23 @@ public class UserServices {
     public ResponseEntity<?> registerUser(RegisterDTO userRegisterDTO) {
         try {
             logger.info("Registering user with email: " + userRegisterDTO.getEmail());
-            User newUser = new User();
-            newUser.setName(userRegisterDTO.getName());
-            newUser.setEmail(userRegisterDTO.getEmail());
             if (userRepo.findByEmail(userRegisterDTO.getEmail()) != null) {
                 logger.warning("Email already exists: " + userRegisterDTO.getEmail());
                 throw new UserAlreadyExists("Email already exists, please enter a new email");
             }
 
+            User newUser = User.builder()
+                    .name(userRegisterDTO.getName())
+                    .email(userRegisterDTO.getEmail())
+                    .phoneNumber(userRegisterDTO.getPhoneNumber())
+                    .isAdmin(false)
+                    .build();
+
             String encryptedPassword = passwordServices.encryptPassword(userRegisterDTO.getPassword());
             newUser.setPassword(encryptedPassword);
-            newUser.setPhoneNumber(userRegisterDTO.getPhoneNumber());
-            newUser.setAdmin(true);
 
             userRepo.save(newUser);
-            ResponseUserDTO responseUserDTO = new ResponseUserDTO(newUser.getName(), newUser.getEmail(), newUser.getPhoneNumber(), newUser.isAdmin());
+            ResponseUserDTO responseUserDTO = UserMapper.convertToResponseUserDTO(newUser);
             logger.info("User registered successfully with ID: " + newUser.getUserId());
             return new ResponseEntity<>(jwtGenerator.generateToken(newUser), HttpStatus.OK);
         } catch (Exception e) {
@@ -76,13 +79,7 @@ public class UserServices {
             }
             List<User> users = userRepo.findAll();
             List<ResponseUserDTO> responseUserDTOs = users.stream()
-                    .map(user -> new ResponseUserDTO(
-
-                            user.getName(),
-                            user.getEmail(),
-                            user.getPhoneNumber(),
-                            user.isAdmin()
-                    ))
+                    .map(UserMapper::convertToResponseUserDTO)
                     .collect(Collectors.toList());
             logger.info("Fetched all users successfully");
             return responseUserDTOs;
@@ -128,7 +125,7 @@ public class UserServices {
                 throw new UserNotFoundException("User not found");
             }
             User responseUser = user.get();
-            ResponseUserDTO responseUserDTO = new ResponseUserDTO(responseUser.getName(), responseUser.getEmail(), responseUser.getPhoneNumber(),responseUser.isAdmin());
+            ResponseUserDTO responseUserDTO = UserMapper.convertToResponseUserDTO(responseUser);
             logger.info("Fetched user details successfully for user ID: " + userId);
             return responseUserDTO;
         } catch (Exception e) {
@@ -144,12 +141,14 @@ public class UserServices {
             Integer userId = Integer.parseInt(userID);
             User user = userRepo.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
 
-            Address address = new Address();
-            address.setCity(addressdto.getCity());
-            address.setStreet(addressdto.getStreet());
-            address.setState(addressdto.getState());
-            address.setZipCode(addressdto.getZipCode());
-            address.setUser(user);
+            Address address = Address.builder()
+                    .street(addressdto.getStreet())
+                    .city(addressdto.getCity())
+                    .state(addressdto.getState())
+                    .zipCode(addressdto.getZipCode())
+                    .user(user)
+                    .build();
+
             addressRepository.save(address);
             logger.info("Address added successfully for user ID: " + userId);
             return address;
@@ -194,7 +193,7 @@ public class UserServices {
             }
             if (updateUserDTO.getName()!= null && !updateUserDTO.getPhoneNumber().isEmpty()) user.setPhoneNumber(updateUserDTO.getPhoneNumber());
             userRepo.save(user);
-            ResponseUserDTO responseUserDTO = new ResponseUserDTO( user.getName(), user.getEmail(), user.getPhoneNumber(), user.isAdmin());
+            ResponseUserDTO responseUserDTO = UserMapper.convertToResponseUserDTO(user);
             logger.info("User profile updated successfully for user ID: " + userId);
             return responseUserDTO;
         } catch (Exception e) {
@@ -236,8 +235,6 @@ public class UserServices {
                 throw new UnauthorizedAccess("Don't have access ");
             }
 
-           // AddressDTO address = new AddressDTO(userAddress.getStreet(), userAddress.getCity(), userAddress.getState(), userAddress.getZipCode());
-
             return userAddress;
         } catch (Exception e) {
             logger.severe("Error fetching address: " + e.getMessage());
@@ -247,7 +244,7 @@ public class UserServices {
 
     public ResponseUserDTO getUserDetailsById(int userId) {
         User user = userRepo.findById(userId).orElseThrow(()-> new UserNotFoundException("No Such User Found"));
-        ResponseUserDTO userDetails = new ResponseUserDTO(user.getName(), user.getEmail(), user.getPhoneNumber(), user.isAdmin());
+        ResponseUserDTO userDetails = UserMapper.convertToResponseUserDTO(user);
         return userDetails;
     }
 
@@ -259,7 +256,7 @@ public class UserServices {
         user.setAdmin(true);
         userRepo.save(user);
 
-        ResponseUserDTO responseUserDTO = new ResponseUserDTO(user.getName(), user.getEmail(), user.getPhoneNumber(), user.isAdmin());
+        ResponseUserDTO responseUserDTO = UserMapper.convertToResponseUserDTO(user);
         return responseUserDTO;
     }
 }

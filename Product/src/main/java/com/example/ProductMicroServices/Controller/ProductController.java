@@ -79,7 +79,6 @@ public class ProductController {
     //delete a product
     @DeleteMapping("/{prodId}")
     public ResponseEntity<String> deleteProduct(@PathVariable Integer prodId,@RequestHeader("Authorization") String authHeader){
-
         String token = authHeader.substring(7);
         productServices.deleteProduct(prodId,token);
         return new ResponseEntity<>("Product Deleted",HttpStatus.NO_CONTENT);
@@ -87,8 +86,6 @@ public class ProductController {
 
     @PostMapping("/filter")
     public ResponseEntity<List<Product>> filterProducts(@RequestBody FilterProductsDTO filters) {
-
-
         List<Product> products = productServices.filterProducts(filters);
         return new ResponseEntity<>(products, HttpStatus.OK);
     }
@@ -96,7 +93,7 @@ public class ProductController {
     @PatchMapping("/reduceStock/{prodId}")
     public void reduceStock(@RequestParam int quantity,@PathVariable Integer prodId){
 
-        productServices.reduceStock(prodId,quantity);
+        productServices.reduceStock(prodId, quantity);
 
     }
 

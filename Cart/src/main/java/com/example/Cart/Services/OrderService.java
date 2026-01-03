@@ -1,5 +1,7 @@
 package com.example.Cart.Services;
 
+import com.example.Cart.Client.ProductClient;
+import com.example.Cart.Client.UserClient;
 import com.example.Cart.DTO.*;
 import com.example.Cart.Entity.Cart;
 import com.example.Cart.Entity.CartItem;
@@ -12,10 +14,7 @@ import com.example.Cart.Mapper.OrderMapper;
 import com.example.Cart.Utils.JwtTokenUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -30,7 +29,10 @@ public class OrderService {
     private JwtTokenUtil jwtTokenUtil;
 
     @Autowired
-    private WebClient webClient;
+    private UserClient userClient;
+
+    @Autowired
+    private ProductClient productClient;
 
     @Autowired
     private OrderPersistenceFacade orderPersistenceFacade;
@@ -90,7 +92,7 @@ public class OrderService {
                 logger.warning("No products in cart for user ID: " + userId);
                 throw new NotFoundException("No Products in cart found");
             }
-            UserDTO userDetails = getUser(userId);
+            UserDTO userDetails = userClient.getUserFromUserId(userId);
             if (userDetails == null) {
                 logger.warning("No such user found with ID: " + userId);
                 throw new NotFoundException("No such user found");
@@ -116,7 +118,7 @@ public class OrderService {
     private void createOrderItem(Orders userOrders, int productId, int quantity, UserDTO userDetails, int addressId, String authHeader) {
         try {
             logger.info("Creating order item for product ID: " + productId + ", quantity: " + quantity);
-            ProductDTO product = getProducts(productId);
+            ProductDTO product = productClient.getProductById(productId);
             if (product == null) {
                 logger.warning("No such product present with ID: " + productId);
                 throw new NotFoundException("No such product present");
@@ -130,7 +132,7 @@ public class OrderService {
             String user = jwtTokenUtil.getUserId(token);
             int userId = Integer.parseInt(user);
 
-            AddressDTO userAddress = fetchAddress(addressId, authHeader);
+            AddressDTO userAddress = userClient.fetchAddress(addressId, authHeader);
             String address = userAddress.toString();
             OrderItem newOrderItem = OrderItem.builder()
                     .createdAt(new Date())
@@ -146,7 +148,7 @@ public class OrderService {
                     .order(userOrders)
                     .build();
 
-            reduceStock(quantity, productId);
+            productClient.reduceStock(quantity, productId);
             orderPersistenceFacade.save(newOrderItem);
             userOrders.getOrderItems().add(newOrderItem);
             logger.info("Order item created successfully for product ID: " + productId);
@@ -169,7 +171,7 @@ public class OrderService {
             orderPersistenceFacade.save(userOrders);
             logger.info("Created new order for user ID: " + userId);
 
-            UserDTO userDetails = getUser(userId);
+            UserDTO userDetails = userClient.getUserFromUserId(userId);
             if (userDetails == null) {
                 logger.warning("No such user found with ID: " + userId);
                 throw new NotFoundException("No such user found");
@@ -195,59 +197,6 @@ public class OrderService {
         }
     }
 
-    private ProductDTO getProducts(int productId) {
-        String productServiceUrl = "http://localhost:8081/products/" + productId;
-        try {
-            logger.info("Fetching product with ID: " + productId);
-            ProductDTO product = webClient.get()
-                    .uri(productServiceUrl)
-                    .retrieve()
-                    .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new RuntimeException("Product not found")))
-                    .bodyToMono(ProductDTO.class)
-                    .block();
-            logger.info("Fetched product successfully with ID: " + productId);
-            return product;
-        } catch (Exception e) {
-            logger.severe("Error fetching product: " + e.getMessage());
-            throw e;
-        }
-    }
-
-    private UserDTO getUser(int userId) {
-        String userServiceUrl = "http://localhost:8080/user/" + userId;
-        try {
-            logger.info("Fetching user with ID: " + userId);
-            UserDTO user = webClient.get()
-                    .uri(userServiceUrl)
-                    .retrieve()
-                    .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new RuntimeException("User not found")))
-                    .bodyToMono(UserDTO.class)
-                    .block();
-            logger.info("Fetched user successfully with ID: " + userId);
-            return user;
-        } catch (Exception e) {
-            logger.severe("Error fetching user: " + e.getMessage());
-            throw e;
-        }
-    }
-
-    private void reduceStock(int quantity, int productId) {
-        String productServiceUrl = "http://localhost:8081/products/reduceStock/" + productId + "?quantity=" + quantity;
-        try {
-            logger.info("Reducing stock for product ID: " + productId + " by quantity: " + quantity);
-            webClient.patch()
-                    .uri(productServiceUrl)
-                    .retrieve()
-                    .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new RuntimeException("Product not found")))
-                    .bodyToMono(ProductDTO.class)
-                    .block();
-            logger.info("Stock reduced successfully for product ID: " + productId);
-        } catch (Exception e) {
-            logger.severe("Error reducing stock: " + e.getMessage());
-            throw e;
-        }
-    }
-
     private void deleteCartItems(List<CartItem> cartItems) {
         try {
             logger.info("Deleting cart items");
@@ -261,24 +210,6 @@ public class OrderService {
         }
     }
 
-    private AddressDTO fetchAddress(int addressId, String authHeader) {
-        String userServiceUrl = "http://localhost:8080/user/address/" + addressId;
-        try {
-            logger.info("Fetching address with ID: " + addressId);
-            AddressDTO address = webClient.get()
-                    .uri(userServiceUrl)
-                    .headers(headers -> headers.set("Authorization", authHeader))
-                    .retrieve()
-                    .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new RuntimeException("Address not found")))
-                    .bodyToMono(AddressDTO.class)
-                    .block();
-            logger.info("Fetched address successfully with ID: " + addressId);
-            return address;
-        } catch (Exception e) {
-            logger.severe("Error fetching address: " + e.getMessage());
-            throw e;
-        }
-    }
 
     public OrdersDTO getOrderById(int orderId, String token) {
         try {

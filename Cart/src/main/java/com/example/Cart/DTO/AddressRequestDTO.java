@@ -1,17 +1,13 @@
 package com.example.Cart.DTO;
 
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class AddressRequestDTO {
 
     @NotNull
     private int addressId;
-
-    public int getAddressId() {
-        return addressId;
-    }
-
-    public void setAddressId(int addressId) {
-        this.addressId = addressId;
-    }
 }

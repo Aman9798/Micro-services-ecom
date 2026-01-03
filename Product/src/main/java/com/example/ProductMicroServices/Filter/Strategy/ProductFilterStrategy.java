@@ -1,4 +1,4 @@
-package com.example.ProductMicroServices.Filter;
+package com.example.ProductMicroServices.Filter.Strategy;
 
 import com.example.ProductMicroServices.DTO.FilterProductsDTO;
 import com.example.ProductMicroServices.Enums.FilterStrategy;

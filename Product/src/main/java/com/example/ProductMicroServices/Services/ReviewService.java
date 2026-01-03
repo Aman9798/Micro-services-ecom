@@ -1,12 +1,11 @@
 package com.example.ProductMicroServices.Services;
 
-import com.example.ProductMicroServices.DTO.ProductDTO;
+import com.example.ProductMicroServices.Clients.OrderClient;
 import com.example.ProductMicroServices.DTO.ReviewDTO;
 import com.example.ProductMicroServices.Entity.Product;
 import com.example.ProductMicroServices.Entity.Review;
 import com.example.ProductMicroServices.Repository.ProductRepo;
 import com.example.ProductMicroServices.Repository.ReviewRepository;
-import com.example.ProductMicroServices.Services.ProductServices;
 import com.example.ProductMicroServices.Utils.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -15,7 +14,6 @@ import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.Date;
@@ -32,11 +30,11 @@ public class ReviewService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
+
     @Autowired
-    private WebClient webClient;
+    private OrderClient orderClient;
 
     @Autowired
     private ProductRepo productRepository;
@@ -44,7 +42,7 @@ public class ReviewService {
     public ReviewDTO createReview(ReviewDTO review,String authHeader) {
 
         String token = authHeader.substring(7);
-        if(!hasUserBoughtProduct(review.getProductId(),authHeader)){
+        if(!orderClient.hasUserBoughtProduct(review.getProductId(),authHeader)){
             throw new RuntimeException("Cannot add review");
         }
 
@@ -87,30 +85,9 @@ public class ReviewService {
         productRepository.save(product);
     }
 
-    private boolean hasUserBoughtProduct(int productId, String authHeader) {
-        String cartServiceUrl = "http://localhost:8082/order/product/" + productId;
-        try {
-
-            return Boolean.TRUE.equals(webClient.get()
-                    .uri(cartServiceUrl)
-                    .header("Authorization", authHeader)
-                    .retrieve()
-                    .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new RuntimeException("No such order found")))
-                    .bodyToMono(Boolean.class) // Expect a boolean response
-                    .defaultIfEmpty(false)
-                    .onErrorReturn(false)
-                    .block());
-        } catch (Exception e) {
-            throw new RuntimeException("Error checking product purchase status", e);
-        }
-    }
-
-
     public List<Review> getReviewsByProductId(int productId) {
         return reviewRepository.findByProductId(productId);
     }
-
-
 
     public boolean deleteReview(String id) {
         Optional<Review> review = reviewRepository.findById(id);

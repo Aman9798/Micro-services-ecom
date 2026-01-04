@@ -72,9 +72,9 @@ public class OrderService {
     }
 
     @Transactional
-    public List<OrdersDTO> placeOrder(String authHeader, AddressRequestDTO addressRequestDTO) {
+    public List<OrdersDTO> placeOrder(AddressRequestDTO addressRequestDTO, String authHeader) {
         try {
-            String token = authHeader.substring(7);
+            String token = jwtTokenUtil.getToken(authHeader);
             logger.info("Placing order for token: " + token);
             String user = jwtTokenUtil.getUserId(token);
             int userId = Integer.parseInt(user);
@@ -127,7 +127,7 @@ public class OrderService {
                 logger.warning("Required quantity not present in stock for product ID: " + productId);
                 throw new NotFoundException("Required quantity not present in stock");
             }
-            String token = authHeader.substring(7);
+            String token = jwtTokenUtil.getToken(authHeader);
             logger.info("Placing order for token: " + token);
             String user = jwtTokenUtil.getUserId(token);
             int userId = Integer.parseInt(user);
@@ -158,9 +158,9 @@ public class OrderService {
         }
     }
 
-    public List<OrdersDTO> buyNow(String authHeader, CartItemDTO cartItemDTO) {
+    public List<OrdersDTO> buyNow(CartItemDTO cartItemDTO, String authHeader) {
         try {
-            String token = authHeader.substring(7);
+            String token = jwtTokenUtil.getToken(authHeader);
             logger.info("Processing buy now for token: " + token);
             String user = jwtTokenUtil.getUserId(token);
             int userId = Integer.parseInt(user);
@@ -230,7 +230,7 @@ public class OrderService {
         }
     }
 
-    public boolean checkUserHasBoughtProduct(String token, int productId) {
+    public boolean checkUserHasBoughtProduct(int productId, String token) {
 
         try{
             String userId = jwtTokenUtil.getUserId(token);

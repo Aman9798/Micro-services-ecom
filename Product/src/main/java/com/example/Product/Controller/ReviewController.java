@@ -1,6 +1,7 @@
 package com.example.Product.Controller;
 
-import com.example.Product.DTO.ReviewDTO;
+import com.example.Product.DTO.ReviewRequestDTO;
+import com.example.Product.DTO.ReviewResponseDTO;
 import com.example.Product.Entity.Review;
 import com.example.Product.Service.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,17 +23,17 @@ public class ReviewController {
 
 
     @PostMapping
-    public ResponseEntity<ReviewDTO> createReview(@RequestBody ReviewDTO review, @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<ReviewResponseDTO> createReview(@RequestBody ReviewRequestDTO review, @RequestHeader("Authorization") String authHeader) {
 
-        ReviewDTO createdReview = reviewService.createReview(review, authHeader);
+        ReviewResponseDTO createdReview = reviewService.createReview(review, authHeader);
         return new ResponseEntity<>(createdReview, HttpStatus.CREATED);
     }
 
 
 
     @GetMapping("/product/{productId}")
-    public ResponseEntity<List<Review>> getReviewsByProductId(@PathVariable int productId) {
-        List<Review> reviews = reviewService.getReviewsByProductId(productId);
+    public ResponseEntity<List<ReviewResponseDTO>> getReviewsByProductId(@PathVariable int productId) {
+        List<ReviewResponseDTO> reviews = reviewService.getReviewsByProductId(productId);
         return new ResponseEntity<>(reviews, HttpStatus.OK);
     }
 
@@ -61,9 +62,4 @@ public class ReviewController {
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
-
-
-
-
 }

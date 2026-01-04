@@ -1,10 +1,12 @@
 package com.example.Product.Service;
 
-import com.example.Product.DTO.ReviewDTO;
+import com.example.Product.DTO.ReviewRequestDTO;
+import com.example.Product.DTO.ReviewResponseDTO;
 import com.example.Product.Delegate.OrderDelegate;
 import com.example.Product.Entity.Product;
 import com.example.Product.Entity.Review;
 import com.example.Product.Exception.ProductNotFoundException;
+import com.example.Product.Mapper.ProductMapper;
 import com.example.Product.Mapper.ReviewMapper;
 import com.example.Product.Repository.ProductRepository;
 import com.example.Product.Repository.ReviewRepository;
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
@@ -38,8 +41,6 @@ public class ReviewServiceTest {
     @Mock
     private OrderDelegate orderDelegate;
 
-
-
     @Mock
     private JwtTokenUtil jwtTokenUtil;
 
@@ -52,7 +53,7 @@ public class ReviewServiceTest {
 
     @Test
     void createReview_success() {
-        ReviewDTO requestDTO = ReviewDTO.builder()
+        ReviewRequestDTO requestDTO = ReviewRequestDTO.builder()
                 .productId(PRODUCT_ID)
                 .userName("")
                 .rating(4)
@@ -82,7 +83,7 @@ public class ReviewServiceTest {
         when(productRepository.save(any(Product.class)))
                 .thenReturn(product);
 
-        ReviewDTO result =
+        ReviewResponseDTO result =
                 reviewService.createReview(requestDTO, AUTH_HEADER);
 
         assertNotNull(result);
@@ -92,7 +93,7 @@ public class ReviewServiceTest {
 
     @Test
     void addReview_productNotFound() {
-        ReviewDTO requestDTO = ReviewDTO.builder()
+        ReviewRequestDTO requestDTO = ReviewRequestDTO.builder()
                 .productId(PRODUCT_ID)
                 .userName("")
                 .rating(4)
@@ -122,15 +123,27 @@ public class ReviewServiceTest {
 
     @Test
     void getReviewsByProductId_success() {
-        List<Review> reviews = List.of(new Review(), new Review());
+        List<Review> reviews = List.of(
+                Review.builder().build(),
+                Review.builder().build()
+        );
+
+        ReviewResponseDTO reviewResponse = ReviewResponseDTO.builder().build();
 
         when(reviewRepository.findByProductId(PRODUCT_ID))
                 .thenReturn(reviews);
 
-        List<Review> result =
-                reviewService.getReviewsByProductId(PRODUCT_ID);
+        try (MockedStatic<ReviewMapper> mockedStatic =
+                     mockStatic(ReviewMapper.class)) {
+            mockedStatic
+                    .when(() -> ReviewMapper.convertToReviewResponseDTO(any(Review.class)))
+                    .thenReturn(reviewResponse);
 
-        assertEquals(2, result.size());
+            List<ReviewResponseDTO> result =
+                    reviewService.getReviewsByProductId(PRODUCT_ID);
+
+            assertEquals(2, result.size());
+        }
     }
 
     @Test
@@ -138,7 +151,7 @@ public class ReviewServiceTest {
         when(reviewRepository.findByProductId(PRODUCT_ID))
                 .thenReturn(Collections.emptyList());
 
-        List<Review> result =
+        List<ReviewResponseDTO> result =
                 reviewService.getReviewsByProductId(PRODUCT_ID);
 
         assertTrue(result.isEmpty());
@@ -168,5 +181,4 @@ public class ReviewServiceTest {
 
         assertFalse(result);
     }
-
 }

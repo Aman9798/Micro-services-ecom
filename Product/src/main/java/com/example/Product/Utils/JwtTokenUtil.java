@@ -27,5 +27,4 @@ public class JwtTokenUtil {
     public String getToken(String authHeader){
         return authHeader.substring(7);
     }
-
 }

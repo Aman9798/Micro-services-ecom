@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UpdateProductDTO {
+public class UpdateProductRequestDTO {
 
     @Size(min = 2, max = 255, message = "Product name must be between 2 and 255 characters")
     private String name;

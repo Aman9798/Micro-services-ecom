@@ -7,7 +7,7 @@ import lombok.Setter;
 @Builder
 @Getter
 @Setter
-public class ReviewDTO {
+public class ReviewResponseDTO {
 
     private int productId;
 

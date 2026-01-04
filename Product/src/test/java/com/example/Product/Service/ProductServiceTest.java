@@ -1,8 +1,9 @@
 package com.example.Product.Service;
 
 import com.example.Product.DTO.FilterProductsDTO;
-import com.example.Product.DTO.ProductDTO;
-import com.example.Product.DTO.UpdateProductDTO;
+import com.example.Product.DTO.ProductRequestDTO;
+import com.example.Product.DTO.ProductResponseDTO;
+import com.example.Product.DTO.UpdateProductRequestDTO;
 import com.example.Product.Entity.Product;
 import com.example.Product.Enums.Category;
 import com.example.Product.Enums.Gender;
@@ -35,9 +36,6 @@ public class ProductServiceTest {
     private ProductRepository productRepository;
 
     @Mock
-    private ProductMapper productMapper;
-
-    @Mock
     private ProductQueryService productQueryService;
 
     @Mock
@@ -49,18 +47,29 @@ public class ProductServiceTest {
 
     @Test
     void getAllProducts_success() {
-        List<Product> products = List.of(new Product());
+        Product product = Product.builder().build();
+        List<Product> products = List.of(product);
+
+        ProductResponseDTO productResponse = ProductResponseDTO.builder().build();;
+
         when(productRepository.findAll()).thenReturn(products);
 
-        List<Product> result = productService.getAllProducts();
+        try (MockedStatic<ProductMapper> mockedStatic =
+                     mockStatic(ProductMapper.class)) {
+            mockedStatic
+                    .when(() -> ProductMapper.convertToProductResponseDTO(product))
+                    .thenReturn(productResponse);
 
-        assertEquals(1, result.size());
+            List<ProductResponseDTO> result = productService.getAllProducts();
+
+            assertNotNull(result);
+            assertEquals(1, result.size());
+            assertEquals(productResponse, result.get(0));
+        }
     }
 
     @Test
     void getAllProducts_failure() {
-        List<Product> products = List.of(new Product());
-
         when(productRepository.findAll()).thenThrow(new RuntimeException("DB error"));
 
         assertThrows(
@@ -71,14 +80,22 @@ public class ProductServiceTest {
 
     @Test
     void getProductById_success() {
-        Product product = new Product();
+        Product product = Product.builder().build();;
+        ProductResponseDTO productResponse = ProductResponseDTO.builder().build();;
 
         when(productRepository.findById(PRODUCT_ID)).thenReturn(Optional.of(product));
 
-        Product result = productService.getProductById(PRODUCT_ID);
+        try (MockedStatic<ProductMapper> mockedStatic =
+                     mockStatic(ProductMapper.class)) {
+            mockedStatic
+                    .when(() -> ProductMapper.convertToProductResponseDTO(product))
+                    .thenReturn(productResponse);
 
-        assertNotNull(result);
-        assertEquals(product, result);
+            ProductResponseDTO result = productService.getProductById(PRODUCT_ID);
+
+            assertNotNull(result);
+            assertEquals(product.getId(), result.getId());
+        }
     }
 
     @Test
@@ -93,13 +110,24 @@ public class ProductServiceTest {
 
     @Test
     void getProductsByCategory_success() {
-        Product product = new Product();
+        Product product = Product.builder().build();;
         List<Product> products = List.of(product);
 
-        when(productRepository.findByCategory(Category.SportsEquipments)).thenReturn(products);
-        List<Product> result = productService.getProductsByCategory("SportsEquipments");
+        ProductResponseDTO productResponse = ProductResponseDTO.builder().build();;
 
-        assertEquals(1, result.size());
+        when(productRepository.findByCategory(Category.SportsEquipments)).thenReturn(products);
+
+        try (MockedStatic<ProductMapper> mockedStatic =
+                     mockStatic(ProductMapper.class)) {
+            mockedStatic
+                    .when(() -> ProductMapper.convertToProductResponseDTO(product))
+                    .thenReturn(productResponse);
+
+            List<ProductResponseDTO> result = productService.getProductsByCategory("SportsEquipments");
+
+            assertNotNull(result);
+            assertEquals(1, result.size());
+        }
     }
 
     @Test
@@ -112,13 +140,24 @@ public class ProductServiceTest {
 
     @Test
     void getProductsByGender_success() {
-        Product product = new Product();
+        Product product = Product.builder().build();;
         List<Product> products = List.of(product);
 
-        when(productRepository.findByGender(Gender.Women)).thenReturn(products);
-        List<Product> result = productService.getProductsByGender("Women");
+        ProductResponseDTO productResponse = ProductResponseDTO.builder().build();;
 
-        assertEquals(1, result.size());
+        when(productRepository.findByGender(Gender.Women)).thenReturn(products);
+
+        try (MockedStatic<ProductMapper> mockedStatic =
+                     mockStatic(ProductMapper.class)) {
+            mockedStatic
+                    .when(() -> ProductMapper.convertToProductResponseDTO(product))
+                    .thenReturn(productResponse);
+
+            List<ProductResponseDTO> result = productService.getProductsByGender("Women");
+
+            assertNotNull(result);
+            assertEquals(1, result.size());
+        }
     }
 
     @Test
@@ -131,8 +170,9 @@ public class ProductServiceTest {
 
     @Test
     void addProduct_success() {
-        ProductDTO request = new ProductDTO();
-        Product product = new Product();
+        ProductRequestDTO productRequest = new ProductRequestDTO();
+        Product product = Product.builder().build();;
+        ProductResponseDTO productResponse = ProductResponseDTO.builder().build();;
 
         when(jwtTokenUtil.isAdmin(VALID_TOKEN)).thenReturn(true);
         when(productRepository.save(product)).thenReturn(product);
@@ -140,14 +180,17 @@ public class ProductServiceTest {
         try (MockedStatic<ProductMapper> mockedStatic =
                      mockStatic(ProductMapper.class)) {
             mockedStatic
-                    .when(() -> ProductMapper.convertToProduct(request))
+                    .when(() -> ProductMapper.convertToProduct(productRequest))
                     .thenReturn(product);
 
-            Product result = productService.addProduct(request, VALID_TOKEN);
+            mockedStatic
+                    .when(() -> ProductMapper.convertToProductResponseDTO(product))
+                    .thenReturn(productResponse);
+
+            ProductResponseDTO result = productService.addProduct(productRequest, VALID_TOKEN);
 
             assertNotNull(result);
             verify(productRepository).save(product);
-            assertEquals(product, result);
         }
     }
 
@@ -157,7 +200,7 @@ public class ProductServiceTest {
 
         assertThrows(
                 UnauthorizedAccess.class,
-                () -> productService.addProduct(new ProductDTO(), INVALID_TOKEN)
+                () -> productService.addProduct(new ProductRequestDTO(), INVALID_TOKEN)
         );
 
         verify(productRepository, never()).save(any());
@@ -165,8 +208,9 @@ public class ProductServiceTest {
 
     @Test
     void updateProduct_success() {
-        Product existingProduct = new Product();
-        UpdateProductDTO requestDTO = new UpdateProductDTO();
+        Product existingProduct = Product.builder().build();
+        UpdateProductRequestDTO requestDTO = new UpdateProductRequestDTO();
+        ProductResponseDTO productResponse = ProductResponseDTO.builder().build();
 
         when(jwtTokenUtil.isAdmin(VALID_TOKEN)).thenReturn(true);
         when(productRepository.findById(PRODUCT_ID))
@@ -174,11 +218,18 @@ public class ProductServiceTest {
         when(productRepository.save(existingProduct))
                 .thenReturn(existingProduct);
 
-        Product result =
-                productService.updateProduct(PRODUCT_ID, requestDTO, VALID_TOKEN);
+        try (MockedStatic<ProductMapper> mockedStatic =
+                     mockStatic(ProductMapper.class)) {
+            mockedStatic
+                    .when(() -> ProductMapper.convertToProductResponseDTO(existingProduct))
+                    .thenReturn(productResponse);
 
-        assertNotNull(result);
-        verify(productRepository).save(existingProduct);
+            ProductResponseDTO result =
+                    productService.updateProduct(PRODUCT_ID, requestDTO, VALID_TOKEN);
+
+            assertNotNull(result);
+            verify(productRepository).save(existingProduct);
+        }
     }
 
     @Test
@@ -187,7 +238,7 @@ public class ProductServiceTest {
 
         assertThrows(
                 UnauthorizedAccess.class,
-                () -> productService.updateProduct(PRODUCT_ID, new UpdateProductDTO(), INVALID_TOKEN)
+                () -> productService.updateProduct(PRODUCT_ID, new UpdateProductRequestDTO(), INVALID_TOKEN)
         );
 
         verify(productRepository, never()).save(any());
@@ -201,13 +252,13 @@ public class ProductServiceTest {
 
         assertThrows(
                 ProductNotFoundException.class,
-                () -> productService.updateProduct(PRODUCT_ID, new UpdateProductDTO(), VALID_TOKEN)
+                () -> productService.updateProduct(PRODUCT_ID, new UpdateProductRequestDTO(), VALID_TOKEN)
         );
     }
 
     @Test
     void deleteProduct_success() {
-        Product product = new Product();
+        Product product = Product.builder().build();;
 
         when(jwtTokenUtil.isAdmin(VALID_TOKEN)).thenReturn(true);
         when(productRepository.findById(PRODUCT_ID))
@@ -245,20 +296,28 @@ public class ProductServiceTest {
     @Test
     void filterProducts_success() {
         FilterProductsDTO filterDTO = new FilterProductsDTO();
-        Product product = new Product();
+        Product product = Product.builder().build();;
         List<Product> products = List.of(product);
+        ProductResponseDTO productResponse = ProductResponseDTO.builder().build();;
 
         when(productQueryService.filterProducts(filterDTO)).thenReturn(products);
 
-        List<Product> result =
-                productService.filterProducts(filterDTO);
+        try (MockedStatic<ProductMapper> mockedStatic =
+                     mockStatic(ProductMapper.class)) {
+            mockedStatic
+                    .when(() -> ProductMapper.convertToProductResponseDTO(product))
+                    .thenReturn(productResponse);
 
-        assertEquals(1, result.size());
+            List<ProductResponseDTO> result =
+                    productService.filterProducts(filterDTO);
+
+            assertEquals(1, result.size());
+        }
     }
 
     @Test
     void reduceStock_success() {
-        Product product = new Product();
+        Product product = Product.builder().build();;
         product.setStock(10L);
 
         when(productRepository.findById(PRODUCT_ID))
@@ -287,7 +346,7 @@ public class ProductServiceTest {
 
     @Test
     void reduceStock_insufficientStock() {
-        Product product = new Product();
+        Product product = Product.builder().build();;
         product.setStock(2L);
 
         when(productRepository.findById(PRODUCT_ID))

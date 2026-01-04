@@ -1,7 +1,8 @@
 package com.example.Product.Service;
 
+import com.example.Product.DTO.ReviewResponseDTO;
 import com.example.Product.Delegate.OrderDelegate;
-import com.example.Product.DTO.ReviewDTO;
+import com.example.Product.DTO.ReviewRequestDTO;
 import com.example.Product.Entity.Product;
 import com.example.Product.Entity.Review;
 import com.example.Product.Exception.ProductNotFoundException;
@@ -38,7 +39,7 @@ public class ReviewService {
     @Autowired
     private ProductRepository productRepository;
 
-    public ReviewDTO createReview(ReviewDTO review, String authHeader) {
+    public ReviewResponseDTO createReview(ReviewRequestDTO review, String authHeader) {
 
         String token = jwtTokenUtil.getToken(authHeader);
         if(!orderDelegate.hasUserBoughtProduct(review.getProductId(), authHeader)){
@@ -50,7 +51,7 @@ public class ReviewService {
         reviewRepository.save(newReview);
         updateProductReviewData(review.getProductId());
 
-        return review;
+        return ReviewMapper.convertToReviewResponseDTO(newReview);
     }
 
     private void updateProductReviewData(int productId) {
@@ -79,8 +80,11 @@ public class ReviewService {
         productRepository.save(product);
     }
 
-    public List<Review> getReviewsByProductId(int productId) {
-        return reviewRepository.findByProductId(productId);
+    public List<ReviewResponseDTO> getReviewsByProductId(int productId) {
+        List<Review> reviews = reviewRepository.findByProductId(productId);
+        return reviews.stream()
+                .map(ReviewMapper::convertToReviewResponseDTO)
+                .toList();
     }
 
     public boolean deleteReview(String id) {
@@ -112,11 +116,9 @@ public class ReviewService {
         return 0.0;
     }
 
-
     public long getReviewCountForProduct(int productId) {
         return reviewRepository.countByProductId(productId);
     }
-
 
     public List<Review> getReviewsByProductIdAndRating(int productId, Integer rating) {
         return reviewRepository.findByProductIdAndRating(productId, rating);

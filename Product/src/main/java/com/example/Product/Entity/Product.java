@@ -30,11 +30,11 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Size(min = 2, max = 255 , message = "name cannot be more than 100 characters")
+    @Size(min = 2, max = 255 , message = "Length of name should be between 2 and 255")
     @Indexed
     private String name;
 
-    @Size(min = 2, max = 500 , message = "name cannot be more than 1000 characters")
+    @Size(min = 2, max = 500 , message = "Length of description should be between 2 and 500")
     @Indexed
     private String description;
 

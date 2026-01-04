@@ -26,11 +26,19 @@ public class OrderController {
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
 
+    @GetMapping("all")
+    public ResponseEntity<List<OrderResponseDTO>> getAllOrders(@RequestHeader("Authorization") String authHeader){
+        String token = jwtTokenUtil.getToken(authHeader);
+
+        List<OrderResponseDTO> allOrders = orderServices.getAllOrders(token);
+        return new ResponseEntity<>(allOrders, HttpStatus.OK);
+    }
+
     @GetMapping
     public ResponseEntity<List<OrderResponseDTO>> getAllUserOrders(@RequestHeader("Authorization") String authHeader){
         String token = jwtTokenUtil.getToken(authHeader);
 
-        List<OrderResponseDTO> userOrders = orderServices.getAllOrders(token);
+        List<OrderResponseDTO> userOrders = orderServices.getAllUserOrders(token);
         return new ResponseEntity<>(userOrders, HttpStatus.OK);
     }
 

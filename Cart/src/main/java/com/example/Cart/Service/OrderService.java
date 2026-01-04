@@ -44,29 +44,39 @@ public class OrderService {
 
     public List<OrderResponseDTO> getAllOrders(String token) {
         try {
+            if (!jwtTokenUtil.isAdmin(token)) {
+                logger.warning("Unauthorized access attempt to delete product");
+                throw new RuntimeException("This is an admin functionality");
+            }
+
+            logger.info("User is admin, fetching all orders for " + token);
+
+            List<Orders> allOrders = orderPersistenceFacade.findAllOrders();
+            logger.info("Fetched all orders successfully");
+
+            return allOrders.stream()
+                    .map(OrderMapper::convertToOrderResponseDTO)
+                    .toList();
+        } catch (Exception e) {
+            logger.severe("Error fetching orders: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    public List<OrderResponseDTO> getAllUserOrders(String token) {
+        try {
             logger.info("Fetching all orders for token: " + token);
             String user = jwtTokenUtil.getUserId(token);
             int userId = Integer.parseInt(user);
 
-            if (jwtTokenUtil.isAdmin(token)) {
-                logger.info("User is admin, fetching all orders");
+            logger.info("Fetching orders for user ID: " + userId);
 
-                List<Orders> userOrders = orderPersistenceFacade.findAllOrders();
-                logger.info("Fetched all orders successfully");
+            List<Orders> userOrders = orderPersistenceFacade.findOrdersByUserId(userId);
+            logger.info("Fetched orders for user ID: " + userId + " successfully");
 
-                return userOrders.stream()
-                        .map(OrderMapper::convertToOrderResponseDTO)
-                        .toList();
-            } else {
-                logger.info("User is not admin, fetching orders for user ID: " + userId);
-
-                List<Orders> userOrders = orderPersistenceFacade.findOrdersByUserId(userId);
-                logger.info("Fetched orders for user ID: " + userId + " successfully");
-
-                return userOrders.stream()
-                        .map(OrderMapper::convertToOrderResponseDTO)
-                        .toList();
-            }
+            return userOrders.stream()
+                    .map(OrderMapper::convertToOrderResponseDTO)
+                    .toList();
         } catch (Exception e) {
             logger.severe("Error fetching orders: " + e.getMessage());
             throw e;

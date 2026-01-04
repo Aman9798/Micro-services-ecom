@@ -8,6 +8,7 @@ import com.example.user.Exception.UserNotFoundException;
 import com.example.user.JwtGenerator.JwtGeneratorInterface;
 import com.example.user.Entity.Address;
 import com.example.user.Entity.User;
+import com.example.user.Mapper.AddressMapper;
 import com.example.user.Mapper.UserMapper;
 import com.example.user.Repository.AddressRepository;
 import com.example.user.Repository.UserRepository;
@@ -134,31 +135,27 @@ public class UserService {
         }
     }
 
-    public Address addAddress(AddressDTO addressdto, String token) {
+    public AddressResponseDTO addAddress(AddressRequestDTO addressRequest, String token) {
         try {
             logger.info("Adding address for user with token: " + token);
             String userID = jwtTokenUtil.getUserId(token);
             Integer userId = Integer.parseInt(userID);
             User user = userRepo.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
 
-            Address address = Address.builder()
-                    .street(addressdto.getStreet())
-                    .city(addressdto.getCity())
-                    .state(addressdto.getState())
-                    .zipCode(addressdto.getZipCode())
-                    .user(user)
-                    .build();
+            Address address = AddressMapper.convertToAddress(addressRequest);
+            address.setUser(user);
 
             addressRepository.save(address);
             logger.info("Address added successfully for user ID: " + userId);
-            return address;
+
+            return AddressMapper.convertToAddressResponseDTO(address);
         } catch (Exception e) {
             logger.severe("Error adding address: " + e.getMessage());
             throw e;
         }
     }
 
-    public List<Address> getUserAddresses(String token) {
+    public List<AddressResponseDTO> getUserAddresses(String token) {
         try {
             logger.info("Fetching addresses for user with token: " + token);
             String userID = jwtTokenUtil.getUserId(token);
@@ -166,8 +163,9 @@ public class UserService {
             User user = userRepo.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
             List<Address> userAddresses = user.getAddresses();
 
-
-            return userAddresses;
+            return userAddresses.stream()
+                    .map(AddressMapper::convertToAddressResponseDTO)
+                    .toList();
         } catch (Exception e) {
             logger.severe("Error fetching addresses: " + e.getMessage());
             throw e;
@@ -179,10 +177,17 @@ public class UserService {
             logger.info("Updating user profile for user with token: " + token);
             String userID = jwtTokenUtil.getUserId(token);
             Integer userId = Integer.parseInt(userID);
+
             User user = userRepo.findById(userId)
-                    .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
-          //  System.out.println(updateUserDTO.getName());
-            if (updateUserDTO.getName()!= null && !updateUserDTO.getName().isEmpty()) user.setName(updateUserDTO.getName());
+                    .orElseThrow(
+                            () -> new UserNotFoundException("User not found with id: " + userId)
+                    );
+
+
+            if (updateUserDTO.getName()!= null && !updateUserDTO.getName().isEmpty()) {
+                user.setName(updateUserDTO.getName());
+            }
+
             if (updateUserDTO.getNewPassword()!= null && !updateUserDTO.getNewPassword().isEmpty()) {
                 if (!passwordServices.matches(updateUserDTO.getOldPassword(), user.getPassword())) {
                     logger.warning("Invalid password for email: " + user.getEmail());
@@ -191,51 +196,61 @@ public class UserService {
                 String encryptedPassword = passwordServices.encryptPassword(updateUserDTO.getNewPassword());
                 user.setPassword(encryptedPassword);
             }
-            if (updateUserDTO.getName()!= null && !updateUserDTO.getPhoneNumber().isEmpty()) user.setPhoneNumber(updateUserDTO.getPhoneNumber());
+
+            if (updateUserDTO.getName()!= null && !updateUserDTO.getPhoneNumber().isEmpty()){
+                user.setPhoneNumber(updateUserDTO.getPhoneNumber());
+            }
+
             userRepo.save(user);
-            ResponseUserDTO responseUserDTO = UserMapper.convertToResponseUserDTO(user);
             logger.info("User profile updated successfully for user ID: " + userId);
-            return responseUserDTO;
+
+            return UserMapper.convertToResponseUserDTO(user);
         } catch (Exception e) {
             logger.severe("Error updating user profile: " + e.getMessage());
             throw e;
         }
     }
 
-    public void deleteAddress(Integer id, String token) {
+    public void deleteAddress(Integer addressId, String token) {
         try {
-            logger.info("Deleting address with ID: " + id + " for user with token: " + token);
+            logger.info("Deleting address with ID: " + addressId + " for user with token: " + token);
             String userID = jwtTokenUtil.getUserId(token);
             Integer userId = Integer.parseInt(userID);
             User user = userRepo.findById(userId)
                     .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
 
-            Address address = addressRepository.findById(id).orElseThrow(() -> new AddressNotFoundException("No Such address present"));
+            Address address = addressRepository.findById(addressId)
+                    .orElseThrow(
+                            () -> new AddressNotFoundException("No Such address present")
+                    );
+
             if (!user.hasAddress(address)) {
-                logger.warning("Unauthorized access attempt to delete address with ID: " + id);
+                logger.warning("Unauthorized access attempt to delete address with ID: " + addressId);
                 throw new UnauthorizedAccess("Don't have permission to execute this operation");
             }
 
-            addressRepository.deleteById(id);
-            logger.info("Address deleted successfully with ID: " + id);
+            addressRepository.deleteById(addressId);
+            logger.info("Address deleted successfully with ID: " + addressId);
         } catch (Exception e) {
             logger.severe("Error deleting address: " + e.getMessage());
             throw e;
         }
     }
 
-    public Address getAddressById(Integer id, String token) {
+    public AddressResponseDTO getAddressById(Integer addressId, String token) {
         try {
-            logger.info("Fetching address with ID: " + id + " for user with token: " + token);
+            logger.info("Fetching address with ID: " + addressId + " for user with token: " + token);
             String userID = jwtTokenUtil.getUserId(token);
             Integer userId = Integer.parseInt(userID);
-            Address userAddress = addressRepository.findById(id).orElseThrow(() -> new AddressNotFoundException("No such address present"));
+
+            Address userAddress = addressRepository.findById(addressId).orElseThrow(() -> new AddressNotFoundException("No such address present"));
+
             if (userAddress.getUser().getUserId() != userId) {
-                logger.warning("Unauthorized access attempt to fetch address with ID: " + id);
+                logger.warning("Unauthorized access attempt to fetch address with ID: " + addressId);
                 throw new UnauthorizedAccess("Don't have access ");
             }
 
-            return userAddress;
+            return AddressMapper.convertToAddressResponseDTO(userAddress);
         } catch (Exception e) {
             logger.severe("Error fetching address: " + e.getMessage());
             throw e;
@@ -243,20 +258,21 @@ public class UserService {
     }
 
     public ResponseUserDTO getUserDetailsById(int userId) {
-        User user = userRepo.findById(userId).orElseThrow(()-> new UserNotFoundException("No Such User Found"));
-        ResponseUserDTO userDetails = UserMapper.convertToResponseUserDTO(user);
-        return userDetails;
+        User user = userRepo.findById(userId)
+                .orElseThrow(
+                        ()-> new UserNotFoundException("No Such User Found")
+                );
+        return UserMapper.convertToResponseUserDTO(user);
     }
 
-    public ResponseUserDTO makeUserAdmin(AdminRequestDTO adminRequestDTO, String token) {
+    public ResponseUserDTO makeUserAdmin(AdminRequestDTO adminRequest, String token) {
         if(!jwtTokenUtil.isAdmin(token)){
             throw new UnauthorizedAccess("This is a admin functionality");
         }
-        User user = userRepo.findByEmail(adminRequestDTO.getUserEmail());
+        User user = userRepo.findByEmail(adminRequest.getUserEmail());
         user.setAdmin(true);
         userRepo.save(user);
 
-        ResponseUserDTO responseUserDTO = UserMapper.convertToResponseUserDTO(user);
-        return responseUserDTO;
+        return UserMapper.convertToResponseUserDTO(user);
     }
 }

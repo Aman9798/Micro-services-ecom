@@ -1,8 +1,9 @@
 package com.example.Cart.Service;
 
+import com.example.Cart.DTO.CartItemResponseDTO;
 import com.example.Cart.Delegate.ProductDelegate;
-import com.example.Cart.DTO.CartDTO;
-import com.example.Cart.DTO.CartItemDTO;
+import com.example.Cart.DTO.CartResponseDTO;
+import com.example.Cart.DTO.CartItemRequestDTO;
 import com.example.Cart.Entity.Cart;
 import com.example.Cart.Entity.CartItem;
 import com.example.Cart.DTO.ProductDTO;
@@ -44,7 +45,7 @@ public class CartService {
         }
     }
 
-    public CartDTO getCart(String token) {
+    public CartResponseDTO getCart(String token) {
         try {
             String user = jwtTokenUtil.getUserId(token);
             int userId = Integer.parseInt(user);
@@ -59,14 +60,14 @@ public class CartService {
                 cart = cartPersistenceFacade.save(cart);
             }
 
-            return CartMapper.convertToCartDTO(cart);
+            return CartMapper.convertToCartResponseDTO(cart);
         } catch (Exception e) {
             logger.severe("Error fetching cart: " + e.getMessage());
             throw new RuntimeException(e.getMessage(), e);
         }
     }
 
-    public CartDTO updateCartItem(int cartItemId, String token, int quantity) {
+    public CartResponseDTO updateCartItem(int cartItemId,  int quantity, String token) {
         try {
             String user = jwtTokenUtil.getUserId(token);
             int userId = Integer.parseInt(user);
@@ -91,7 +92,7 @@ public class CartService {
             }
             cartPersistenceFacade.save(userCart);
             Cart cart = existingItem.getCart();
-            return CartMapper.convertToCartDTO(cart);
+            return CartMapper.convertToCartResponseDTO(cart);
         } catch (RuntimeException e) {
             logger.severe("Error updating cart item: " + e.getMessage());
             throw e;
@@ -99,7 +100,7 @@ public class CartService {
     }
 
     @Transactional
-    public List<CartItem> addCartItem(CartItemDTO cartItemDTO, String token) {
+    public List<CartItemResponseDTO> addCartItem(CartItemRequestDTO cartItemRequest, String token) {
         try {
             String user = jwtTokenUtil.getUserId(token);
             int userId = Integer.parseInt(user);
@@ -114,26 +115,26 @@ public class CartService {
                 cartPersistenceFacade.save(cart);
             }
 
-            ProductDTO product = productDelegate.getProductById(cartItemDTO.getProductId());
+            ProductDTO product = productDelegate.getProductById(cartItemRequest.getProductId());
             if (product == null) {
                 logger.warning("No such product exists");
                 throw new NotFoundException("No such product exists");
             }
 
             Optional<CartItem> existingCartItem = cart.getCartItems().stream()
-                    .filter(item -> item.getProductId() == cartItemDTO.getProductId())
+                    .filter(item -> item.getProductId() == cartItemRequest.getProductId())
                     .findFirst();
 
             if (!existingCartItem.isEmpty()) {
                 CartItem cartItem = existingCartItem.get();
                 cartItem.setCart(cart);
-                cartItem.setQuantity(cartItem.getQuantity() + cartItemDTO.getQuantity());
+                cartItem.setQuantity(cartItem.getQuantity() + cartItemRequest.getQuantity());
             } else {
                 CartItem newCartItem = CartItem.builder()
                         .productName(product.getName())
-                        .productId(cartItemDTO.getProductId())
+                        .productId(cartItemRequest.getProductId())
                         .cart(cart)
-                        .quantity(cartItemDTO.getQuantity())
+                        .quantity(cartItemRequest.getQuantity())
                         .price(product.getPrice())
                         .imageUrl(product.getImageURL())
                         .build();
@@ -141,7 +142,11 @@ public class CartService {
                 cartPersistenceFacade.save(newCartItem);
                 cart.getCartItems().add(newCartItem);
             }
-            return cart.getCartItems();
+
+            List<CartItem> cartItems = cart.getCartItems();
+            return cartItems.stream()
+                    .map(CartMapper::convertToCartItemResponseDTO)
+                    .toList();
         } catch (Exception e) {
             logger.severe("Error adding cart item: " + e.getMessage());
             throw e;

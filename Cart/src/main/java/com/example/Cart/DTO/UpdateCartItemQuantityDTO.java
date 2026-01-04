@@ -6,9 +6,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UpdateProductDTO {
+public class UpdateCartItemQuantityDTO {
 
     @Min(value = 0, message = "product Quantity cannot be  negative")
     private int quantity;
-
 }

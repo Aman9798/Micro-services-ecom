@@ -2,8 +2,9 @@ package com.example.Cart.Controller;
 
 
 import com.example.Cart.DTO.AddressRequestDTO;
-import com.example.Cart.DTO.CartItemDTO;
-import com.example.Cart.DTO.OrdersDTO;
+import com.example.Cart.DTO.BuyNowRequestDTO;
+import com.example.Cart.DTO.CartItemRequestDTO;
+import com.example.Cart.DTO.OrderResponseDTO;
 import com.example.Cart.Service.OrderService;
 import com.example.Cart.Utils.JwtTokenUtil;
 import jakarta.validation.Valid;
@@ -26,43 +27,37 @@ public class OrderController {
     private JwtTokenUtil jwtTokenUtil;
 
     @GetMapping
-    public ResponseEntity<List<OrdersDTO>> getAllUserOrders(@RequestHeader("Authorization") String authHeader){
+    public ResponseEntity<List<OrderResponseDTO>> getAllUserOrders(@RequestHeader("Authorization") String authHeader){
         String token = jwtTokenUtil.getToken(authHeader);
 
-        List<OrdersDTO> userOrders = orderServices.getAllOrders(token);
+        List<OrderResponseDTO> userOrders = orderServices.getAllOrders(token);
         return new ResponseEntity<>(userOrders, HttpStatus.OK);
     }
 
     @GetMapping("{orderId}")
-    public ResponseEntity<OrdersDTO> getOrderById(@RequestHeader("Authorization") String authHeader,@PathVariable int orderId){
+    public ResponseEntity<OrderResponseDTO> getOrderById(@RequestHeader("Authorization") String authHeader, @PathVariable int orderId){
         String token = jwtTokenUtil.getToken(authHeader);
 
-        OrdersDTO userOrder = orderServices.getOrderById(orderId, token);
+        OrderResponseDTO userOrder = orderServices.getOrderById(orderId, token);
         return new ResponseEntity<>(userOrder, HttpStatus.OK);
     }
 
-
-
     @PostMapping
-    public ResponseEntity<List<OrdersDTO>> placeOrder(@RequestHeader("Authorization") String authHeader, @Valid @RequestBody AddressRequestDTO addressRequestDTO){
-        List<OrdersDTO> userOrders = orderServices.placeOrder(addressRequestDTO, authHeader);
+    public ResponseEntity<List<OrderResponseDTO>> placeOrder(@RequestHeader("Authorization") String authHeader, @Valid @RequestBody AddressRequestDTO addressRequestDTO){
+        List<OrderResponseDTO> userOrders = orderServices.placeOrder(addressRequestDTO, authHeader);
         return new ResponseEntity<>(userOrders,HttpStatus.CREATED);
     }
 
     @PostMapping("instant")
-    public ResponseEntity<List<OrdersDTO>> buyNow(@RequestHeader("Authorization") String authHeader, @Valid @RequestBody CartItemDTO cartItemDTO){
+    public ResponseEntity<List<OrderResponseDTO>> buyNow(@RequestHeader("Authorization") String authHeader, @Valid @RequestBody BuyNowRequestDTO buyNowRequestDTO){
 
-        List<OrdersDTO> userOrders = orderServices.buyNow(cartItemDTO, authHeader);
+        List<OrderResponseDTO> userOrders = orderServices.buyNow(buyNowRequestDTO, authHeader);
         return new ResponseEntity<>(userOrders,HttpStatus.CREATED);
     }
 
-    @GetMapping("/product/{productId}")
-    public boolean userHasOrder(@RequestHeader("Authorization") String authHeader,@PathVariable int productId){
+    @GetMapping("product/{productId}")
+    public boolean userHasOrder(@RequestHeader("Authorization") String authHeader, @PathVariable int productId){
         String token = jwtTokenUtil.getToken(authHeader);
         return orderServices.checkUserHasBoughtProduct(productId, token);
     }
-
-
-
-
 }

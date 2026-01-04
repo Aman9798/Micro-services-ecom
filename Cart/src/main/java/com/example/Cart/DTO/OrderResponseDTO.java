@@ -1,6 +1,6 @@
 package com.example.Cart.DTO;
 
-import com.example.Cart.Entity.CartItem;
+import com.example.Cart.Entity.OrderItem;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -13,14 +13,11 @@ import java.util.List;
 @Builder
 @Getter
 @Setter
-public class CartDTO {
+public class OrderResponseDTO {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int cartId;
+    private int orderId;
 
-    @OneToMany(mappedBy = "cart",orphanRemoval = true,fetch = FetchType.LAZY)
-    @JsonManagedReference
-    private List<CartItem> cartItems = new ArrayList<>();
+    private List<OrderItemResponseDTO> orderItems = new ArrayList<>();
 
     private long totalPrice;
 }

@@ -22,6 +22,7 @@ public class CartItem {
     private String productName;
 
     private int productId;
+
     @ManyToOne
     @JoinColumn(name = "cart_id")
     @JsonBackReference

@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @Getter
 @Setter
-public class AddressDTO {
+public class AddressRequestDTO {
     @NotNull(message = "Street can't be empty")
     @Size(min = 1, max= 100,message ="Street can't be empty")
     private String street;

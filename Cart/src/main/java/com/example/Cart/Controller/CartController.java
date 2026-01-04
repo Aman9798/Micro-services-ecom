@@ -1,9 +1,9 @@
 package com.example.Cart.Controller;
 
-import com.example.Cart.DTO.CartDTO;
-import com.example.Cart.DTO.CartItemDTO;
-import com.example.Cart.DTO.UpdateProductDTO;
-import com.example.Cart.Entity.CartItem;
+import com.example.Cart.DTO.CartResponseDTO;
+import com.example.Cart.DTO.CartItemRequestDTO;
+import com.example.Cart.DTO.CartItemResponseDTO;
+import com.example.Cart.DTO.UpdateCartItemQuantityDTO;
 import com.example.Cart.Service.CartService;
 import com.example.Cart.Utils.JwtTokenUtil;
 import jakarta.validation.Valid;
@@ -26,31 +26,23 @@ public class CartController {
     private JwtTokenUtil jwtTokenUtil;
 
     @PostMapping("/")
-    public ResponseEntity<List<CartItem>> addCartItem(@Valid @RequestBody CartItemDTO cartItem, @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<List<CartItemResponseDTO>> addCartItem(@Valid @RequestBody CartItemRequestDTO cartItemRequest, @RequestHeader("Authorization") String authHeader) {
         String token = jwtTokenUtil.getToken(authHeader);
-
-        List<CartItem> cartItems = cartService.addCartItem(cartItem,token);
-        return new ResponseEntity<>(cartItems,HttpStatus.CREATED);
+        List<CartItemResponseDTO> cartItems = cartService.addCartItem(cartItemRequest, token);
+        return new ResponseEntity<>(cartItems, HttpStatus.CREATED);
     }
 
     @GetMapping("/")
-    public ResponseEntity<CartDTO> getCart(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<CartResponseDTO> getCart(@RequestHeader("Authorization") String authHeader) {
         String token = jwtTokenUtil.getToken(authHeader);
-        CartDTO cart = cartService.getCart(token);
-        return new ResponseEntity<>(cart,HttpStatus.OK);
+        CartResponseDTO cart = cartService.getCart(token);
+        return new ResponseEntity<>(cart, HttpStatus.OK);
     }
-
 
     @PatchMapping("/{cartItemId}")
-    public ResponseEntity<CartDTO> updateCartItemQuantity(@PathVariable int cartItemId, @RequestHeader("Authorization") String authHeader, @RequestBody UpdateProductDTO updateProductDTO) {
+    public ResponseEntity<CartResponseDTO> updateCartItemQuantity(@PathVariable int cartItemId, @RequestHeader("Authorization") String authHeader, @RequestBody UpdateCartItemQuantityDTO updateCartItemQuantityDTO) {
         String token = jwtTokenUtil.getToken(authHeader);
-        CartDTO updatedCart = cartService.updateCartItem(cartItemId,token,updateProductDTO.getQuantity());
-        return new ResponseEntity<>(updatedCart,HttpStatus.CREATED);
+        CartResponseDTO updatedCart = cartService.updateCartItem(cartItemId, updateCartItemQuantityDTO.getQuantity(), token);
+        return new ResponseEntity<>(updatedCart, HttpStatus.CREATED);
     }
-
-
-
-
-
-
 }

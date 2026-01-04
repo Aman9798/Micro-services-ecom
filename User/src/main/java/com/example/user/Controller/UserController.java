@@ -56,46 +56,45 @@ public class UserController {
     }
 
     @PostMapping("/address/")
-    public ResponseEntity<Address> addAddress(@Valid @RequestBody AddressDTO addressdto, @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<AddressResponseDTO> addAddress(@Valid @RequestBody AddressRequestDTO addressRequest, @RequestHeader("Authorization") String authHeader) {
         String token = jwtTokenUtil.getToken(authHeader);
-        Address createdAddress = userService.addAddress(addressdto, token);
+        AddressResponseDTO createdAddress = userService.addAddress(addressRequest, token);
         return new ResponseEntity<>(createdAddress, HttpStatus.CREATED);
     }
 
     @GetMapping("/address/")
-    public ResponseEntity<List<Address>> getUserAddresses(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<List<AddressResponseDTO>> getUserAddresses(@RequestHeader("Authorization") String authHeader) {
         String token = jwtTokenUtil.getToken(authHeader);
-        List<Address> addresses = userService.getUserAddresses(token);
+        List<AddressResponseDTO> addresses = userService.getUserAddresses(token);
         return new ResponseEntity<>(addresses, HttpStatus.OK);
     }
 
     @PatchMapping("/")
-    public ResponseEntity<ResponseUserDTO> updateUserProfile(@RequestHeader("Authorization") String authHeader, @Valid @RequestBody UpdateUserDTO updateUserDTO) {
+    public ResponseEntity<ResponseUserDTO> updateUserProfile(@RequestHeader("Authorization") String authHeader, @Valid @RequestBody UpdateUserDTO updateUser) {
         String token = jwtTokenUtil.getToken(authHeader);
-       // System.out.println(updateUserDTO.getName());
-        ResponseUserDTO responseUserDTO = userService.updateUserProfile(token, updateUserDTO);
+
+        ResponseUserDTO responseUserDTO = userService.updateUserProfile(token, updateUser);
         return new ResponseEntity<>(responseUserDTO, HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/address/{id}")
-    public ResponseEntity<String> deleteAddress(@PathVariable Integer id, @RequestHeader("Authorization") String authHeader) {
+    @DeleteMapping("/address/{addressId}")
+    public ResponseEntity<String> deleteAddress(@PathVariable Integer addressId, @RequestHeader("Authorization") String authHeader) {
         String token = jwtTokenUtil.getToken(authHeader);
-        userService.deleteAddress(id, token);
+        userService.deleteAddress(addressId, token);
         return new ResponseEntity<>("Address Removed Successfully", HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping("/address/{id}")
-    public ResponseEntity<Address> getAddressById(@PathVariable Integer id, @RequestHeader("Authorization") String authHeader) {
-      //  System.out.println("1");
+    @GetMapping("/address/{addressId}")
+    public ResponseEntity<AddressResponseDTO> getAddressById(@PathVariable Integer addressId, @RequestHeader("Authorization") String authHeader) {
         String token = jwtTokenUtil.getToken(authHeader);
-        Address userAddress = userService.getAddressById(id, token);
+        AddressResponseDTO userAddress = userService.getAddressById(addressId, token);
         return new ResponseEntity<>(userAddress, HttpStatus.OK);
     }
 
     @PatchMapping("/makeAdmin")
-    public ResponseEntity<ResponseUserDTO> makeUserAdmin(@RequestHeader("Authorization") String authHeader,@Valid @RequestBody AdminRequestDTO adminRequestDTO){
+    public ResponseEntity<ResponseUserDTO> makeUserAdmin(@RequestHeader("Authorization") String authHeader,@Valid @RequestBody AdminRequestDTO adminRequest){
         String token = jwtTokenUtil.getToken(authHeader);
-        ResponseUserDTO user = userService.makeUserAdmin(adminRequestDTO,token);
+        ResponseUserDTO user = userService.makeUserAdmin(adminRequest,token);
         return new ResponseEntity<>(user,HttpStatus.OK);
 
     }

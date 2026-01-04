@@ -42,7 +42,7 @@ public class OrderService {
 
     private static final Logger logger = Logger.getLogger(OrderService.class.getName());
 
-    public List<OrdersDTO> getAllOrders(String token) {
+    public List<OrderResponseDTO> getAllOrders(String token) {
         try {
             logger.info("Fetching all orders for token: " + token);
             String user = jwtTokenUtil.getUserId(token);
@@ -50,20 +50,22 @@ public class OrderService {
 
             if (jwtTokenUtil.isAdmin(token)) {
                 logger.info("User is admin, fetching all orders");
+
                 List<Orders> userOrders = orderPersistenceFacade.findAllOrders();
-                List<OrdersDTO> orders = userOrders.stream()
-                        .map(OrderMapper::convertToOrderDTO)
-                        .collect(Collectors.toList());
                 logger.info("Fetched all orders successfully");
-                return orders;
+
+                return userOrders.stream()
+                        .map(OrderMapper::convertToOrderResponseDTO)
+                        .toList();
             } else {
                 logger.info("User is not admin, fetching orders for user ID: " + userId);
+
                 List<Orders> userOrders = orderPersistenceFacade.findOrdersByUserId(userId);
-                List<OrdersDTO> orders = userOrders.stream()
-                        .map(OrderMapper::convertToOrderDTO)
-                        .collect(Collectors.toList());
                 logger.info("Fetched orders for user ID: " + userId + " successfully");
-                return orders;
+
+                return userOrders.stream()
+                        .map(OrderMapper::convertToOrderResponseDTO)
+                        .toList();
             }
         } catch (Exception e) {
             logger.severe("Error fetching orders: " + e.getMessage());
@@ -72,7 +74,7 @@ public class OrderService {
     }
 
     @Transactional
-    public List<OrdersDTO> placeOrder(AddressRequestDTO addressRequestDTO, String authHeader) {
+    public List<OrderResponseDTO> placeOrder(AddressRequestDTO addressRequestDTO, String authHeader) {
         try {
             String token = jwtTokenUtil.getToken(authHeader);
             logger.info("Placing order for token: " + token);
@@ -104,11 +106,11 @@ public class OrderService {
             deleteCartItems(cartItems);
 
             List<Orders> orders = orderPersistenceFacade.findOrdersByUserId(userId);
-            List<OrdersDTO> ordersDTOs = orders.stream()
-                    .map(OrderMapper::convertToOrderDTO)
-                    .collect(Collectors.toList());
             logger.info("Order placed successfully for user ID: " + userId);
-            return ordersDTOs;
+
+            return orders.stream()
+                    .map(OrderMapper::convertToOrderResponseDTO)
+                    .toList();
         } catch (Exception e) {
             logger.severe("Error placing order: " + e.getMessage());
             throw e;
@@ -134,6 +136,7 @@ public class OrderService {
 
             AddressDTO userAddress = userDelegate.fetchAddress(addressId, authHeader);
             String address = userAddress.toString();
+
             OrderItem newOrderItem = OrderItem.builder()
                     .createdAt(new Date())
                     .productId(product.getId())
@@ -150,6 +153,7 @@ public class OrderService {
 
             productDelegate.reduceStock(quantity, productId);
             orderPersistenceFacade.save(newOrderItem);
+
             userOrders.getOrderItems().add(newOrderItem);
             logger.info("Order item created successfully for product ID: " + productId);
         } catch (Exception e) {
@@ -158,7 +162,7 @@ public class OrderService {
         }
     }
 
-    public List<OrdersDTO> buyNow(CartItemDTO cartItemDTO, String authHeader) {
+    public List<OrderResponseDTO> buyNow(BuyNowRequestDTO buyNowRequestDTO, String authHeader) {
         try {
             String token = jwtTokenUtil.getToken(authHeader);
             logger.info("Processing buy now for token: " + token);
@@ -177,20 +181,16 @@ public class OrderService {
                 throw new NotFoundException("No such user found");
             }
 
-            int addressId = cartItemDTO.getAddressId();
-            createOrderItem(userOrders, cartItemDTO.getProductId(), cartItemDTO.getQuantity(), userDetails, addressId, authHeader);
+            int addressId = buyNowRequestDTO.getAddressId();
+            createOrderItem(userOrders, buyNowRequestDTO.getProductId(), buyNowRequestDTO.getQuantity(), userDetails, addressId, authHeader);
+
             List<Orders> orders = orderPersistenceFacade.findOrdersByUserId(userId);
-            List<OrdersDTO> ordersDTOs = orders.stream()
-                    .map(OrderMapper::convertToOrderDTO)
+            logger.info("Buy now processed successfully for user ID: " + userId);
+
+            return orders.stream()
+                    .map(OrderMapper::convertToOrderResponseDTO)
                     .collect(Collectors.toList());
 
-            CartItem newCartItem = CartItem.builder()
-                    .productId(cartItemDTO.getProductId())
-                    .quantity(cartItemDTO.getQuantity())
-                    .build();;
-
-            logger.info("Buy now processed successfully for user ID: " + userId);
-            return ordersDTOs;
         } catch (Exception e) {
             logger.severe("Error processing buy now: " + e.getMessage());
             throw e;
@@ -211,19 +211,22 @@ public class OrderService {
     }
 
 
-    public OrdersDTO getOrderById(int orderId, String token) {
+    public OrderResponseDTO getOrderById(int orderId, String token) {
         try {
             logger.info("Fetching order with ID: " + orderId);
             Orders userOrder = orderPersistenceFacade.findOrderById(orderId);
             String user = jwtTokenUtil.getUserId(token);
+
             boolean isAdmin = jwtTokenUtil.isAdmin(token);
             int userId = Integer.parseInt(user);
+
             if (userOrder.getUserId() != userId && !isAdmin ) {
                 logger.warning("Order doesn't belong to the user with ID: " + userId);
                 throw new RuntimeException("Order doesn't belong to the user");
             }
+
             logger.info("Fetched order successfully with ID: " + orderId);
-            return OrderMapper.convertToOrderDTO(userOrder);
+            return OrderMapper.convertToOrderResponseDTO(userOrder);
         } catch (Exception e) {
             logger.severe("Error fetching order: " + e.getMessage());
             throw e;
